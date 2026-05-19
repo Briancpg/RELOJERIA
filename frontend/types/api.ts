@@ -66,6 +66,9 @@ export type DashboardSummary = {
   week_end: string;
   total_weekly: string;
   total_monthly: string;
+  floating_weekly: string;
+  floating_monthly: string;
+  floating_profit: string;
   pending_repairs: number;
   delivered_repairs: number;
   accumulated_profit: string;
@@ -81,4 +84,3 @@ export type WeeklyProfit = {
   week_end: string;
   total_profit: string;
 };
-

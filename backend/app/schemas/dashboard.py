@@ -10,6 +10,9 @@ class DashboardSummary(BaseModel):
     week_end: date
     total_weekly: Decimal
     total_monthly: Decimal
+    floating_weekly: Decimal
+    floating_monthly: Decimal
+    floating_profit: Decimal
     pending_repairs: int
     delivered_repairs: int
     accumulated_profit: Decimal
@@ -24,4 +27,3 @@ class WeeklyProfit(BaseModel):
     week_start: date
     week_end: date
     total_profit: Decimal
-

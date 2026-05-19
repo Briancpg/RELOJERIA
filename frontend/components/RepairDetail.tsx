@@ -8,6 +8,12 @@ import type { Repair, RepairImage } from "@/types/api";
 import { ImageUploader } from "@/components/ImageUploader";
 import { StatusBadge } from "@/components/StatusBadge";
 
+function profitLabel(status: Repair["status"]) {
+  if (status === "delivered") return "Ganancia";
+  if (status === "cancelled") return "Sin ganancia";
+  return "Flotante";
+}
+
 export function RepairDetail({ id }: { id: number }) {
   const router = useRouter();
   const [repair, setRepair] = useState<Repair | null>(null);
@@ -54,7 +60,7 @@ export function RepairDetail({ id }: { id: number }) {
             <dd className="font-semibold text-ink">{repair.watchmaker_percentage}%</dd>
           </div>
           <div className="rounded-md bg-surface p-3">
-            <dt className="text-sm text-muted">Ganancia</dt>
+            <dt className="text-sm text-muted">{profitLabel(repair.status)}</dt>
             <dd className="font-semibold text-ink">DOP {repair.profit_amount}</dd>
           </div>
         </dl>

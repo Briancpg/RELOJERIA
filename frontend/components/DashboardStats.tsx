@@ -35,14 +35,15 @@ export function DashboardStats() {
   const cards = [
     { label: "Ganancia semanal", value: money(summary.total_weekly, summary.currency) },
     { label: "Ganancia mensual", value: money(summary.total_monthly, summary.currency) },
+    { label: "Flotante por entregar", value: money(summary.floating_profit, summary.currency) },
     { label: "Pendientes", value: String(summary.pending_repairs) },
     { label: "Entregadas", value: String(summary.delivered_repairs) },
-    { label: "Acumulado", value: money(summary.accumulated_profit, summary.currency) }
+    { label: "Acumulado entregado", value: money(summary.accumulated_profit, summary.currency) }
   ];
 
   return (
     <div className="space-y-5">
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <div key={card.label} className="rounded-lg border border-line bg-white p-4 shadow-sm">
             <p className="text-sm text-muted">{card.label}</p>
@@ -84,4 +85,3 @@ export function DashboardStats() {
     </div>
   );
 }
-

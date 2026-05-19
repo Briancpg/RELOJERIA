@@ -9,6 +9,9 @@ from app.core.config import settings
 from app.models.repair import Repair, RepairStatus
 from app.schemas.dashboard import DashboardSummary, StatusCount, WeeklyProfit
 
+REALIZED_PROFIT_STATUSES = (RepairStatus.delivered,)
+FLOATING_PROFIT_STATUSES = (RepairStatus.pending, RepairStatus.in_progress, RepairStatus.completed)
+
 
 class DashboardService:
     def __init__(self, db: Session) -> None:
@@ -24,8 +27,15 @@ class DashboardService:
         start = day - timedelta(days=day.weekday())
         return start, start + timedelta(days=6)
 
-    def _profit_between(self, start: date | None = None, end: date | None = None) -> Decimal:
+    def _profit_between(
+        self,
+        start: date | None = None,
+        end: date | None = None,
+        statuses: tuple[RepairStatus, ...] = REALIZED_PROFIT_STATUSES,
+    ) -> Decimal:
         statement = select(func.coalesce(func.sum(Repair.profit_amount), 0)).where(Repair.deleted_at.is_(None))
+        if statuses:
+            statement = statement.where(Repair.status.in_(statuses))
         if start:
             statement = statement.where(Repair.repair_date >= start)
         if end:
@@ -49,6 +59,9 @@ class DashboardService:
             week_end=week_end,
             total_weekly=self._profit_between(week_start, week_end),
             total_monthly=self._profit_between(month_start, today),
+            floating_weekly=self._profit_between(week_start, week_end, FLOATING_PROFIT_STATUSES),
+            floating_monthly=self._profit_between(month_start, today, FLOATING_PROFIT_STATUSES),
+            floating_profit=self._profit_between(statuses=FLOATING_PROFIT_STATUSES),
             pending_repairs=self._count_status(RepairStatus.pending),
             delivered_repairs=self._count_status(RepairStatus.delivered),
             accumulated_profit=self._profit_between(),
@@ -72,4 +85,3 @@ class DashboardService:
             end = start + timedelta(days=6)
             result.append(WeeklyProfit(week_start=start, week_end=end, total_profit=self._profit_between(start, end)))
         return result
-

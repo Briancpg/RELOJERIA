@@ -8,6 +8,12 @@ import { StatusBadge, statusLabels } from "@/components/StatusBadge";
 
 const statuses = Object.keys(statusLabels) as RepairStatus[];
 
+function profitLabel(status: RepairStatus) {
+  if (status === "delivered") return "Ganancia";
+  if (status === "cancelled") return "Sin ganancia";
+  return "Flotante";
+}
+
 export function RepairList() {
   const [repairs, setRepairs] = useState<Repair[]>([]);
   const [filters, setFilters] = useState<RepairFilters>({});
@@ -80,7 +86,9 @@ export function RepairList() {
               </div>
               <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
                 <StatusBadge status={repair.status} />
-                <span className="font-semibold text-ink">DOP {repair.profit_amount}</span>
+                <span className="font-semibold text-ink">
+                  {profitLabel(repair.status)}: DOP {repair.profit_amount}
+                </span>
               </div>
             </div>
           </Link>
