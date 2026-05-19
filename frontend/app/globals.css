@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: #f7faf9;
+  color: #18211f;
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2;
+}
+
