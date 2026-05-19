@@ -1,6 +1,6 @@
 "use client";
 
-import { getAccessToken, saveTokens } from "@/lib/auth";
+import { clearTokens, getAccessToken, saveTokens } from "@/lib/auth";
 import type {
   DashboardSummary,
   Repair,
@@ -35,6 +35,13 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
+    if (response.status === 401) {
+      clearTokens();
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.assign("/login");
+      }
+      throw new Error("Sesion expirada. Vuelve a iniciar sesion.");
+    }
     throw new Error(body?.detail ?? "Request failed");
   }
 

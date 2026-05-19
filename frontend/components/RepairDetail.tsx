@@ -35,7 +35,20 @@ export function RepairDetail({ id }: { id: number }) {
     setRepair((current) => (current ? { ...current, images: [...current.images, image] } : current));
   }
 
-  if (error) return <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>;
+  if (error) {
+    return (
+      <div className="rounded-lg border border-line bg-white p-5 shadow-sm">
+        <h1 className="text-lg font-semibold text-ink">No se pudo cargar la reparacion</h1>
+        <p className="mt-2 text-sm text-muted">{error}</p>
+        <Link
+          href="/repairs"
+          className="focus-ring mt-4 inline-flex rounded-md bg-accent px-4 py-2 font-medium text-white"
+        >
+          Volver a reparaciones
+        </Link>
+      </div>
+    );
+  }
   if (!repair) return <p className="text-sm text-muted">Cargando reparacion...</p>;
 
   return (
