@@ -22,6 +22,15 @@ def test_dashboard_profit_status_groups():
     assert REALIZED_PROFIT_STATUSES == (RepairStatus.delivered,)
     assert RepairStatus.pending in FLOATING_PROFIT_STATUSES
     assert RepairStatus.in_progress in FLOATING_PROFIT_STATUSES
-    assert RepairStatus.completed in FLOATING_PROFIT_STATUSES
     assert RepairStatus.delivered not in FLOATING_PROFIT_STATUSES
     assert RepairStatus.cancelled not in FLOATING_PROFIT_STATUSES
+
+
+def test_only_four_repair_statuses_are_allowed():
+    assert tuple(status.value for status in RepairStatus) == (
+        "pending",
+        "in_progress",
+        "delivered",
+        "cancelled",
+    )
+    assert not hasattr(RepairStatus, "completed")

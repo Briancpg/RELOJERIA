@@ -11,7 +11,6 @@ from app.db.base import Base, SoftDeleteMixin, TimestampMixin
 class RepairStatus(StrEnum):
     pending = "pending"
     in_progress = "in_progress"
-    completed = "completed"
     delivered = "delivered"
     cancelled = "cancelled"
 
@@ -22,6 +21,10 @@ class Repair(Base, TimestampMixin, SoftDeleteMixin):
         CheckConstraint("repair_cost >= 0", name="repair_cost_non_negative"),
         CheckConstraint("watchmaker_percentage >= 0 AND watchmaker_percentage <= 100", name="percentage_range"),
         CheckConstraint("profit_amount >= 0", name="profit_amount_non_negative"),
+        CheckConstraint(
+            "status IN ('pending', 'in_progress', 'delivered', 'cancelled')",
+            name="status_allowed",
+        ),
         Index("ix_repairs_repair_date_status", "repair_date", "status"),
     )
 
@@ -45,4 +48,3 @@ class Repair(Base, TimestampMixin, SoftDeleteMixin):
     images: Mapped[list["RepairImage"]] = relationship(
         back_populates="repair", cascade="all, delete-orphan", passive_deletes=True
     )
-

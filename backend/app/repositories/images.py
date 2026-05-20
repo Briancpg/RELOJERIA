@@ -29,6 +29,7 @@ class RepairImageRepository:
         self,
         *,
         repair_id: int,
+        image_type: str,
         r2_key: str,
         file_name: str,
         content_type: str,
@@ -37,6 +38,7 @@ class RepairImageRepository:
     ) -> RepairImage:
         image = RepairImage(
             repair_id=repair_id,
+            image_type=image_type,
             r2_key=r2_key,
             file_name=file_name,
             content_type=content_type,
@@ -52,4 +54,3 @@ class RepairImageRepository:
         image.deleted_at = datetime.now(UTC)
         self.db.add(image)
         self.db.commit()
-

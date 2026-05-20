@@ -44,6 +44,7 @@ class RepairUpdate(BaseModel):
 class RepairImageRead(BaseModel):
     id: int
     repair_id: int
+    image_type: str
     file_name: str
     content_type: str
     file_size: int
@@ -78,3 +79,21 @@ class RepairListResponse(BaseModel):
     page: int
     page_size: int
 
+
+class ExtractedRepairFields(BaseModel):
+    repair_date: date | None = None
+    brand: str | None = None
+    model: str | None = None
+    description: str | None = None
+    repair_cost: Decimal | None = None
+    watchmaker_percentage: Decimal | None = None
+    customer_name: str | None = None
+    notes: str | None = None
+
+
+class EnvelopeExtractionResponse(BaseModel):
+    extracted: bool
+    message: str
+    fields: ExtractedRepairFields
+    confidence: float | None = None
+    raw_text: str | None = None

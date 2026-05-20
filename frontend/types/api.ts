@@ -1,4 +1,5 @@
-export type RepairStatus = "pending" | "in_progress" | "completed" | "delivered" | "cancelled";
+export type RepairStatus = "pending" | "in_progress" | "delivered" | "cancelled";
+export type RepairImageType = "watch" | "envelope";
 
 export type TokenResponse = {
   access_token: string;
@@ -17,6 +18,7 @@ export type User = {
 export type RepairImage = {
   id: number;
   repair_id: number;
+  image_type: RepairImageType;
   file_name: string;
   content_type: string;
   file_size: number;
@@ -83,4 +85,23 @@ export type WeeklyProfit = {
   week_start: string;
   week_end: string;
   total_profit: string;
+};
+
+export type ExtractedRepairFields = Partial<{
+  repair_date: string;
+  brand: string;
+  model: string;
+  description: string;
+  repair_cost: string;
+  watchmaker_percentage: string;
+  customer_name: string;
+  notes: string;
+}>;
+
+export type EnvelopeExtractionResponse = {
+  extracted: boolean;
+  message: string;
+  fields: ExtractedRepairFields;
+  confidence: number | null;
+  raw_text: string | null;
 };

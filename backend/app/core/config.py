@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     r2_public_base_url: str = ""
     max_image_upload_mb: int = 10
 
+    openai_api_key: str = ""
+    openai_vision_model: str = "gpt-5.4-mini"
+    openai_vision_timeout_seconds: int = 45
+
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -42,4 +46,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-

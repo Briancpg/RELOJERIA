@@ -14,6 +14,10 @@ function profitLabel(status: Repair["status"]) {
   return "Flotante";
 }
 
+function imageTypeLabel(image: RepairImage) {
+  return image.image_type === "envelope" ? "Sobre de reparacion" : "Foto del reloj";
+}
+
 export function RepairDetail({ id }: { id: number }) {
   const router = useRouter();
   const [repair, setRepair] = useState<Repair | null>(null);
@@ -102,7 +106,8 @@ export function RepairDetail({ id }: { id: number }) {
             {image.public_url ? (
               <img src={image.public_url} alt={image.file_name} className="mb-2 aspect-video w-full rounded-md object-cover" />
             ) : null}
-            {image.file_name}
+            <span className="block font-medium text-ink">{imageTypeLabel(image)}</span>
+            <span className="block truncate">{image.file_name}</span>
           </a>
         ))}
       </section>

@@ -3,8 +3,10 @@
 import { clearTokens, getAccessToken, saveTokens } from "@/lib/auth";
 import type {
   DashboardSummary,
+  EnvelopeExtractionResponse,
   Repair,
   RepairImage,
+  RepairImageType,
   RepairListResponse,
   RepairPayload,
   RepairStatus,
@@ -84,6 +86,7 @@ export type RepairFilters = {
   date_from?: string;
   date_to?: string;
   page?: number;
+  page_size?: number;
 };
 
 export function listRepairs(filters: RepairFilters = {}) {
@@ -117,10 +120,20 @@ export function deleteRepair(id: number) {
   return request<void>(`/repairs/${id}`, { method: "DELETE" });
 }
 
-export function uploadRepairImage(id: number, file: File) {
+export function uploadRepairImage(id: number, file: File, imageType: RepairImageType = "watch") {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("image_type", imageType);
   return request<RepairImage>(`/repairs/${id}/images`, {
+    method: "POST",
+    body: formData
+  });
+}
+
+export function extractEnvelope(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return request<EnvelopeExtractionResponse>("/repairs/extract-envelope", {
     method: "POST",
     body: formData
   });

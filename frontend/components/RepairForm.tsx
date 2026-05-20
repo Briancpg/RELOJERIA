@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createRepair, updateRepair } from "@/lib/api";
-import type { Repair, RepairPayload, RepairStatus } from "@/types/api";
+import { createRepair, extractEnvelope, updateRepair, uploadRepairImage } from "@/lib/api";
+import type { ExtractedRepairFields, Repair, RepairPayload, RepairStatus } from "@/types/api";
 import { statusLabels } from "@/components/StatusBadge";
 
 const statuses = Object.keys(statusLabels) as RepairStatus[];
@@ -16,6 +17,11 @@ export function RepairForm({ repair }: { repair?: Repair }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [createdRepairId, setCreatedRepairId] = useState<number | null>(null);
+  const [watchPhotos, setWatchPhotos] = useState<File[]>([]);
+  const [envelopePhoto, setEnvelopePhoto] = useState<File | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractionMessage, setExtractionMessage] = useState("");
   const [form, setForm] = useState<RepairPayload>({
     repair_date: repair?.repair_date ?? today(),
     brand: repair?.brand ?? "",
@@ -32,12 +38,68 @@ export function RepairForm({ repair }: { repair?: Repair }) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  function applyExtractedFields(fields: ExtractedRepairFields) {
+    setForm((current) => {
+      const nextValue = (value: string | undefined, fallback: string | null | undefined) =>
+        value !== undefined && value !== null && value !== "" ? value : fallback;
+
+      return {
+        ...current,
+        repair_date: nextValue(fields.repair_date, current.repair_date) ?? current.repair_date,
+        brand: nextValue(fields.brand, current.brand) ?? current.brand,
+        model: nextValue(fields.model, current.model) ?? current.model,
+        description: nextValue(fields.description, current.description) ?? current.description,
+        repair_cost: nextValue(fields.repair_cost, current.repair_cost) ?? current.repair_cost,
+        watchmaker_percentage:
+          nextValue(fields.watchmaker_percentage, current.watchmaker_percentage) ?? current.watchmaker_percentage,
+        customer_name: nextValue(fields.customer_name, current.customer_name),
+        notes: nextValue(fields.notes, current.notes)
+      };
+    });
+  }
+
+  async function readEnvelope() {
+    if (!envelopePhoto) {
+      setExtractionMessage("Selecciona una foto del sobre primero.");
+      return;
+    }
+    setExtracting(true);
+    setExtractionMessage("");
+    try {
+      const result = await extractEnvelope(envelopePhoto);
+      applyExtractedFields(result.fields);
+      const confidence = result.confidence !== null ? ` Confianza: ${Math.round(result.confidence * 100)}%.` : "";
+      const rawText = result.raw_text ? ` Texto leido: ${result.raw_text}` : "";
+      setExtractionMessage(`${result.message}${confidence}${rawText}`);
+    } catch (err) {
+      setExtractionMessage(err instanceof Error ? err.message : "No se pudo leer el sobre");
+    } finally {
+      setExtracting(false);
+    }
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setCreatedRepairId(null);
     try {
       const saved = repair ? await updateRepair(repair.id, form) : await createRepair(form);
+      if (!repair) {
+        const uploads = [
+          ...watchPhotos.map((file) => uploadRepairImage(saved.id, file, "watch")),
+          ...(envelopePhoto ? [uploadRepairImage(saved.id, envelopePhoto, "envelope")] : [])
+        ];
+        const results = await Promise.allSettled(uploads);
+        const failedUploads = results.filter((result) => result.status === "rejected").length;
+        if (failedUploads) {
+          setCreatedRepairId(saved.id);
+          setError(
+            `La reparacion fue creada, pero ${failedUploads} imagen(es) no se pudieron subir. Revisa R2 e intentalo desde el detalle.`
+          );
+          return;
+        }
+      }
       router.replace(`/repairs/${saved.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar");
@@ -48,7 +110,62 @@ export function RepairForm({ repair }: { repair?: Repair }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-line bg-white p-4 shadow-sm">
-      {error ? <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+      {error ? (
+        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p>{error}</p>
+          {createdRepairId ? (
+            <Link href={`/repairs/${createdRepairId}`} className="mt-2 inline-flex font-medium underline">
+              Ver reparacion creada
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
+      {!repair ? (
+        <section className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-md border border-line bg-surface p-3">
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-ink">Fotos del reloj</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
+                multiple
+                onChange={(event) => setWatchPhotos(Array.from(event.target.files ?? []))}
+                className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
+              />
+            </label>
+            {watchPhotos.length ? (
+              <p className="mt-2 text-sm text-muted">{watchPhotos.length} foto(s) seleccionada(s)</p>
+            ) : null}
+          </div>
+
+          <div className="rounded-md border border-line bg-surface p-3">
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-ink">Sobre de reparacion</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
+                onChange={(event) => setEnvelopePhoto(event.target.files?.[0] ?? null)}
+                className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
+              />
+            </label>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                disabled={!envelopePhoto || extracting}
+                onClick={readEnvelope}
+                className="focus-ring rounded-md bg-ink px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {extracting ? "Leyendo..." : "Leer sobre"}
+              </button>
+              {envelopePhoto ? <span className="text-sm text-muted">{envelopePhoto.name}</span> : null}
+            </div>
+            {extractionMessage ? <p className="mt-2 text-sm text-muted">{extractionMessage}</p> : null}
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
@@ -166,4 +283,3 @@ export function RepairForm({ repair }: { repair?: Repair }) {
     </form>
   );
 }
-

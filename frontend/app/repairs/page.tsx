@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { RepairList } from "@/components/RepairList";
 
-export default function RepairsPage() {
+export default function RepairsPage({ searchParams }: { searchParams?: { status?: string } }) {
   return (
     <AppShell>
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -14,8 +14,7 @@ export default function RepairsPage() {
           Nueva
         </Link>
       </div>
-      <RepairList />
+      <RepairList initialStatus={searchParams?.status ?? ""} />
     </AppShell>
   );
 }
-

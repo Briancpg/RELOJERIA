@@ -49,6 +49,16 @@ En produccion cambia ambos valores antes del primer arranque.
 
 Las imagenes se guardan en Cloudflare R2. El servidor local no guarda archivos subidos en disco.
 
+## Lectura Del Sobre Con Vision AI
+
+La pantalla de nueva reparacion permite subir la foto del sobre y pedir una lectura automatica. El backend usa OpenAI Responses API con vision y salida JSON estructurada para sugerir campos; el usuario siempre revisa y corrige antes de guardar.
+
+Variables necesarias:
+
+- `OPENAI_API_KEY`
+- `OPENAI_VISION_MODEL`, por defecto `gpt-5.4-mini`
+- `OPENAI_VISION_TIMEOUT_SECONDS`, por defecto `45`
+
 ## Docker Hub
 
 La aplicacion usa dos imagenes propias:

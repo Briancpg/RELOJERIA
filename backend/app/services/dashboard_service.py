@@ -10,7 +10,7 @@ from app.models.repair import Repair, RepairStatus
 from app.schemas.dashboard import DashboardSummary, StatusCount, WeeklyProfit
 
 REALIZED_PROFIT_STATUSES = (RepairStatus.delivered,)
-FLOATING_PROFIT_STATUSES = (RepairStatus.pending, RepairStatus.in_progress, RepairStatus.completed)
+FLOATING_PROFIT_STATUSES = (RepairStatus.pending, RepairStatus.in_progress)
 
 
 class DashboardService:

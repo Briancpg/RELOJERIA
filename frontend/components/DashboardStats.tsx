@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getDashboardSummary, getProfitByWeek, getRepairsByStatus } from "@/lib/api";
-import type { DashboardSummary, StatusCount, WeeklyProfit } from "@/types/api";
+import { getDashboardSummary, getProfitByWeek, getRepairsByStatus, listRepairs } from "@/lib/api";
+import type { DashboardSummary, RepairStatus, StatusCount, WeeklyProfit } from "@/types/api";
+import { statusLabels } from "@/components/StatusBadge";
 
 function money(value: string, currency: string) {
   return new Intl.NumberFormat("es-DO", { style: "currency", currency }).format(Number(value));
@@ -15,6 +16,7 @@ export function DashboardStats() {
   const [statuses, setStatuses] = useState<StatusCount[]>([]);
   const [weeks, setWeeks] = useState<WeeklyProfit[]>([]);
   const [error, setError] = useState("");
+  const [openingStatus, setOpeningStatus] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getDashboardSummary(), getRepairsByStatus(), getProfitByWeek()])
@@ -41,6 +43,26 @@ export function DashboardStats() {
     { label: "Acumulado entregado", value: money(summary.accumulated_profit, summary.currency) }
   ];
 
+  async function openStatus(item: StatusCount) {
+    const status = item.status as RepairStatus;
+    setOpeningStatus(item.status);
+    try {
+      if (item.count === 1) {
+        const repairs = await listRepairs({ status, page: 1, page_size: 1 });
+        const repair = repairs.items[0];
+        if (repair) {
+          router.push(`/repairs/${repair.id}`);
+          return;
+        }
+      }
+      router.push(`/repairs?status=${encodeURIComponent(item.status)}`);
+    } catch {
+      router.push(`/repairs?status=${encodeURIComponent(item.status)}`);
+    } finally {
+      setOpeningStatus(null);
+    }
+  }
+
   return (
     <div className="space-y-5">
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -58,10 +80,20 @@ export function DashboardStats() {
           <div className="space-y-2">
             {statuses.length ? (
               statuses.map((item) => (
-                <div key={item.status} className="flex items-center justify-between rounded-md bg-surface px-3 py-2">
-                  <span className="text-sm text-muted">{item.status}</span>
+                <button
+                  key={item.status}
+                  type="button"
+                  onClick={() => openStatus(item)}
+                  className="focus-ring flex w-full items-center justify-between rounded-md bg-surface px-3 py-2 text-left transition hover:bg-line"
+                >
+                  <span className="text-sm text-muted">
+                    {statusLabels[item.status as RepairStatus] ?? item.status}
+                  </span>
                   <span className="font-semibold text-ink">{item.count}</span>
-                </div>
+                  <span className="sr-only">
+                    {openingStatus === item.status ? "Abriendo reparacion" : "Abrir reparaciones de este estado"}
+                  </span>
+                </button>
               ))
             ) : (
               <p className="text-sm text-muted">Sin reparaciones registradas.</p>
