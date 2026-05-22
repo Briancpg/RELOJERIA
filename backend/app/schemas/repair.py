@@ -8,16 +8,35 @@ from app.models.repair import RepairStatus
 
 class RepairBase(BaseModel):
     repair_date: date
+    envelope_date: date | None = None
     brand: str = Field(min_length=1, max_length=120)
     model: str = Field(min_length=1, max_length=120)
+    watch_color: str | None = Field(default=None, max_length=80)
+    watch_specifications: str | None = None
     description: str = Field(min_length=1)
-    repair_cost: Decimal = Field(ge=Decimal("0"))
+    repair_cost: Decimal = Field(default=Decimal("0"), ge=Decimal("0"))
+    deposit_amount: Decimal | None = Field(default=None, ge=Decimal("0"))
     watchmaker_percentage: Decimal = Field(ge=Decimal("0"), le=Decimal("100"))
     status: RepairStatus = RepairStatus.pending
-    customer_name: str | None = Field(default=None, max_length=160)
+    customer_name: str = Field(min_length=1, max_length=160)
+    customer_phone: str = Field(min_length=1, max_length=40)
+    customer_document_id: str | None = Field(default=None, max_length=40)
+    invoice_number: str | None = Field(default=None, max_length=80)
     notes: str | None = None
+    envelope_raw_transcription: str | None = None
 
-    @field_validator("brand", "model", "description", "customer_name", mode="before")
+    @field_validator(
+        "brand",
+        "model",
+        "watch_color",
+        "watch_specifications",
+        "description",
+        "customer_name",
+        "customer_phone",
+        "customer_document_id",
+        "invoice_number",
+        mode="before",
+    )
     @classmethod
     def strip_text(cls, value: str | None) -> str | None:
         if value is None:
@@ -31,14 +50,22 @@ class RepairCreate(RepairBase):
 
 class RepairUpdate(BaseModel):
     repair_date: date | None = None
+    envelope_date: date | None = None
     brand: str | None = Field(default=None, min_length=1, max_length=120)
     model: str | None = Field(default=None, min_length=1, max_length=120)
+    watch_color: str | None = Field(default=None, max_length=80)
+    watch_specifications: str | None = None
     description: str | None = Field(default=None, min_length=1)
     repair_cost: Decimal | None = Field(default=None, ge=Decimal("0"))
+    deposit_amount: Decimal | None = Field(default=None, ge=Decimal("0"))
     watchmaker_percentage: Decimal | None = Field(default=None, ge=Decimal("0"), le=Decimal("100"))
     status: RepairStatus | None = None
     customer_name: str | None = Field(default=None, max_length=160)
+    customer_phone: str | None = Field(default=None, max_length=40)
+    customer_document_id: str | None = Field(default=None, max_length=40)
+    invoice_number: str | None = Field(default=None, max_length=80)
     notes: str | None = None
+    envelope_raw_transcription: str | None = None
 
 
 class RepairImageRead(BaseModel):
@@ -57,15 +84,23 @@ class RepairImageRead(BaseModel):
 class RepairRead(BaseModel):
     id: int
     repair_date: date
+    envelope_date: date | None
     brand: str
     model: str
+    watch_color: str | None
+    watch_specifications: str | None
     description: str
     repair_cost: Decimal
+    deposit_amount: Decimal | None
     watchmaker_percentage: Decimal
     profit_amount: Decimal
     status: RepairStatus
     customer_name: str | None
+    customer_phone: str | None
+    customer_document_id: str | None
+    invoice_number: str | None
     notes: str | None
+    envelope_raw_transcription: str | None
     created_at: datetime
     updated_at: datetime
     images: list[RepairImageRead] = []
@@ -82,12 +117,19 @@ class RepairListResponse(BaseModel):
 
 class ExtractedRepairFields(BaseModel):
     repair_date: date | None = None
+    envelope_date: date | None = None
     brand: str | None = None
     model: str | None = None
+    watch_color: str | None = None
+    watch_specifications: str | None = None
     description: str | None = None
     repair_cost: Decimal | None = None
+    deposit_amount: Decimal | None = None
     watchmaker_percentage: Decimal | None = None
     customer_name: str | None = None
+    customer_phone: str | None = None
+    customer_document_id: str | None = None
+    invoice_number: str | None = None
     notes: str | None = None
 
 
@@ -97,3 +139,9 @@ class EnvelopeExtractionResponse(BaseModel):
     fields: ExtractedRepairFields
     confidence: float | None = None
     raw_text: str | None = None
+    raw_transcription: str | None = None
+    raw_text_candidates: list[str] = Field(default_factory=list)
+    envelope_number: str | None = None
+    phone_numbers: list[str] = Field(default_factory=list)
+    field_confidences: dict[str, float] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)

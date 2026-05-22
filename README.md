@@ -61,18 +61,30 @@ Variables necesarias:
 
 ## Docker Hub
 
-La aplicacion usa dos imagenes propias:
+La aplicacion usa dos imagenes propias publicadas:
 
-```bash
-docker tag act-a-como-un-senior-software-backend:latest brian2525/relojeria-backend:latest
-docker tag act-a-como-un-senior-software-frontend:latest brian2525/relojeria-frontend:latest
+```text
+brian2525/relojeria-backend:latest
+brian2525/relojeria-frontend:latest
 ```
 
 PostgreSQL y Nginx se mantienen como imagenes oficiales.
+
+## Produccion
+
+Para VPS Ubuntu usa el compose de produccion:
+
+```bash
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+El orden operativo completo esta en `docs/production-runbook.md`.
 
 ## Documentacion Operativa
 
 - `docs/cloudflare-r2.md`
 - `docs/deployment-vps.md`
+- `docs/production-runbook.md`
 - `docs/security-review.md`
 - `docs/ux-flow.md`

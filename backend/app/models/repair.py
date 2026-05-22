@@ -19,6 +19,7 @@ class Repair(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "repairs"
     __table_args__ = (
         CheckConstraint("repair_cost >= 0", name="repair_cost_non_negative"),
+        CheckConstraint("deposit_amount IS NULL OR deposit_amount >= 0", name="deposit_amount_non_negative"),
         CheckConstraint("watchmaker_percentage >= 0 AND watchmaker_percentage <= 100", name="percentage_range"),
         CheckConstraint("profit_amount >= 0", name="profit_amount_non_negative"),
         CheckConstraint(
@@ -30,10 +31,14 @@ class Repair(Base, TimestampMixin, SoftDeleteMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     repair_date: Mapped[date] = mapped_column(Date, index=True, nullable=False)
+    envelope_date: Mapped[date | None] = mapped_column(Date, index=True, nullable=True)
     brand: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
     model: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    watch_color: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    watch_specifications: Mapped[str | None] = mapped_column(Text, nullable=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     repair_cost: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    deposit_amount: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     watchmaker_percentage: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
     profit_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     status: Mapped[RepairStatus] = mapped_column(
@@ -43,7 +48,11 @@ class Repair(Base, TimestampMixin, SoftDeleteMixin):
         nullable=False,
     )
     customer_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    customer_phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    customer_document_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    invoice_number: Mapped[str | None] = mapped_column(String(80), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    envelope_raw_transcription: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     images: Mapped[list["RepairImage"]] = relationship(
         back_populates="repair", cascade="all, delete-orphan", passive_deletes=True

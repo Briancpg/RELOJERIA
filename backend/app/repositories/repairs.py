@@ -46,7 +46,17 @@ class RepairRepository:
             filters.append(Repair.model.ilike(f"%{model.strip()}%"))
         if search:
             term = f"%{search.strip()}%"
-            filters.append(or_(Repair.brand.ilike(term), Repair.model.ilike(term), Repair.description.ilike(term)))
+            filters.append(
+                or_(
+                    Repair.brand.ilike(term),
+                    Repair.model.ilike(term),
+                    Repair.description.ilike(term),
+                    Repair.customer_name.ilike(term),
+                    Repair.customer_phone.ilike(term),
+                    Repair.customer_document_id.ilike(term),
+                    Repair.invoice_number.ilike(term),
+                )
+            )
 
         for item in filters:
             statement = statement.where(item)

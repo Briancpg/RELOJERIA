@@ -20,6 +20,29 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/v1";
 
 type RequestOptions = RequestInit & { auth?: boolean };
 
+function formatApiError(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object" && "msg" in item) {
+          const message = (item as { msg?: unknown }).msg;
+          return typeof message === "string" ? message : JSON.stringify(item);
+        }
+        return JSON.stringify(item);
+      })
+      .join(" ");
+  }
+  if (detail && typeof detail === "object") {
+    if ("message" in detail && typeof (detail as { message?: unknown }).message === "string") {
+      return (detail as { message: string }).message;
+    }
+    return JSON.stringify(detail);
+  }
+  return "Request failed";
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   if (!(options.body instanceof FormData)) {
@@ -44,7 +67,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       }
       throw new Error("Sesion expirada. Vuelve a iniciar sesion.");
     }
-    throw new Error(body?.detail ?? "Request failed");
+    throw new Error(formatApiError(body?.detail));
   }
 
   if (response.status === 204) {

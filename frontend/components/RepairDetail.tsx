@@ -60,7 +60,7 @@ export function RepairDetail({ id }: { id: number }) {
       <div className="rounded-lg border border-line bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm text-muted">{repair.repair_date}</p>
+            <p className="text-sm text-muted">Fecha actual: {repair.repair_date}</p>
             <h1 className="text-2xl font-semibold text-ink">
               {repair.brand} {repair.model}
             </h1>
@@ -80,13 +80,52 @@ export function RepairDetail({ id }: { id: number }) {
             <dt className="text-sm text-muted">{profitLabel(repair.status)}</dt>
             <dd className="font-semibold text-ink">DOP {repair.profit_amount}</dd>
           </div>
+          <div className="rounded-md bg-surface p-3">
+            <dt className="text-sm text-muted">Abono</dt>
+            <dd className="font-semibold text-ink">DOP {repair.deposit_amount ?? "0.00"}</dd>
+          </div>
+          <div className="rounded-md bg-surface p-3">
+            <dt className="text-sm text-muted">Factura</dt>
+            <dd className="font-semibold text-ink">{repair.invoice_number ?? "Sin factura"}</dd>
+          </div>
+          <div className="rounded-md bg-surface p-3">
+            <dt className="text-sm text-muted">Cedula</dt>
+            <dd className="font-semibold text-ink">{repair.customer_document_id ?? "Sin cedula"}</dd>
+          </div>
+          <div className="rounded-md bg-surface p-3">
+            <dt className="text-sm text-muted">Telefono</dt>
+            <dd className="font-semibold text-ink">{repair.customer_phone ?? "Sin telefono"}</dd>
+          </div>
         </dl>
+        {repair.customer_name ? <p className="mt-4 text-sm text-muted">Cliente: {repair.customer_name}</p> : null}
+        {repair.watch_color ? <p className="mt-2 text-sm text-muted">Color del reloj: {repair.watch_color}</p> : null}
+        {repair.watch_specifications ? (
+          <div className="mt-4 rounded-md bg-surface p-3">
+            <p className="text-sm font-medium text-ink">Especificaciones del reloj</p>
+            <p className="mt-2 whitespace-pre-line text-sm text-muted">{repair.watch_specifications}</p>
+          </div>
+        ) : null}
         <p className="mt-4 whitespace-pre-line text-sm text-ink">{repair.description}</p>
         {repair.notes ? <p className="mt-3 whitespace-pre-line text-sm text-muted">{repair.notes}</p> : null}
+        {repair.envelope_raw_transcription ? (
+          <details className="mt-4 rounded-md bg-surface p-3 text-sm text-muted">
+            <summary className="cursor-pointer font-medium text-ink">Transcripcion del sobre</summary>
+            <p className="mt-2 whitespace-pre-line break-words">{repair.envelope_raw_transcription}</p>
+          </details>
+        ) : null}
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <Link href={`/repairs/${repair.id}/edit`} className="focus-ring rounded-md bg-accent px-4 py-2 text-center font-medium text-white">
-            Editar
-          </Link>
+          {repair.status === "pending" ? (
+            <Link
+              href={`/repairs/${repair.id}/edit`}
+              className="focus-ring rounded-md bg-accent px-4 py-2 text-center font-medium text-white"
+            >
+              Editar
+            </Link>
+          ) : (
+            <span className="rounded-md border border-line px-4 py-2 text-center text-sm text-muted">
+              Solo se puede editar en pendiente
+            </span>
+          )}
           <button type="button" onClick={remove} className="focus-ring rounded-md border border-line px-4 py-2 text-muted">
             Eliminar
           </button>

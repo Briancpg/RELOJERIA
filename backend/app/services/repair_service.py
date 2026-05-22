@@ -61,6 +61,10 @@ class RepairService:
 
     def update(self, repair_id: int, data: RepairUpdate) -> Repair:
         repair = self.get_or_raise(repair_id)
+        update_data = data.model_dump(exclude_unset=True)
+        editable_fields = set(update_data) - {"status"}
+        if repair.status != RepairStatus.pending and editable_fields:
+            raise AppError("Solo se puede editar una reparacion en estado pendiente")
         repair_cost = data.repair_cost if data.repair_cost is not None else repair.repair_cost
         percentage = (
             data.watchmaker_percentage
@@ -73,4 +77,3 @@ class RepairService:
     def soft_delete(self, repair_id: int) -> None:
         repair = self.get_or_raise(repair_id)
         self.repairs.soft_delete(repair)
-

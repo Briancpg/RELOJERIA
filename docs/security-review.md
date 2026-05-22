@@ -19,16 +19,17 @@ Revision local del monolito FastAPI/Next.js, Docker Compose, Nginx, autenticacio
 - `bcrypt` se fijo en `4.0.1` para compatibilidad limpia con `passlib`.
 - Next.js se actualizo a `16.2.6`.
 - `postcss` se fijo en `8.5.10` con override para cerrar el audit de produccion.
-- `npm audit --omit=dev` reporta `0 vulnerabilities`.
+- `npm audit --audit-level=high` reporta `0 vulnerabilities`.
+- R2 real fue probado con upload/delete y el bucket se mantiene privado.
 
 ### Pendiente Antes De Produccion
 
 - Reemplazar `SECRET_KEY`, `ADMIN_PASSWORD` y `POSTGRES_PASSWORD`.
 - Configurar `CORS_ORIGINS` solo con el dominio real.
 - Usar HTTPS obligatorio en produccion.
-- Configurar Cloudflare R2 real.
-- Evaluar vulnerabilidades dev-only si se decide mantener toolchain local con ESLint 8.
-- Considerar URL firmadas si las imagenes no deben ser publicas.
+- Rotar credenciales R2 y OpenAI compartidas fuera del repositorio.
+- Agregar rate limiting al login.
+- Considerar URL firmadas para visualizar imagenes privadas.
 
 ## Superficies Revisadas
 

@@ -78,13 +78,19 @@ async def extract_envelope(file: UploadFile = File(...)):
     result = ExtractionService().extract_from_envelope_image(content, content_type)
     extracted = result.data
     fields = ExtractedRepairFields(
-        repair_date=extracted.repair_date,
+        envelope_date=extracted.repair_date,
         brand=extracted.brand,
         model=extracted.model,
+        watch_color=extracted.watch_color,
+        watch_specifications=extracted.watch_specifications,
         description=extracted.description,
         repair_cost=extracted.repair_cost,
+        deposit_amount=extracted.deposit_amount,
         watchmaker_percentage=extracted.watchmaker_percentage,
         customer_name=extracted.customer_name,
+        customer_phone=extracted.customer_phone,
+        customer_document_id=extracted.customer_document_id,
+        invoice_number=extracted.invoice_number,
         notes=extracted.notes,
     )
     return EnvelopeExtractionResponse(
@@ -93,6 +99,12 @@ async def extract_envelope(file: UploadFile = File(...)):
         fields=fields,
         confidence=result.confidence,
         raw_text=result.raw_text,
+        raw_transcription=result.raw_text,
+        raw_text_candidates=result.raw_text_candidates,
+        envelope_number=result.envelope_number,
+        phone_numbers=result.phone_numbers,
+        field_confidences=result.field_confidences,
+        warnings=result.warnings,
     )
 
 
