@@ -1,6 +1,8 @@
 import { AppShell } from "@/components/AppShell";
 import { RepairEditLoader } from "@/components/RepairEditLoader";
 
+export const runtime = "edge";
+
 export default async function EditRepairPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
