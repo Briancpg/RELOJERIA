@@ -3,7 +3,18 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+  --background: 42 12% 4%;
+  --surface: 40 11% 7%;
+  --foreground: 45 18% 93%;
+  --card: 40 10% 9%;
+  --border: 42 18% 18%;
+  --muted: 36 12% 58%;
+  --accent: 44 66% 53%;
+  --gold: 44 78% 62%;
+  --success: 145 62% 58%;
+  --warning: 40 92% 58%;
+  --danger: 0 76% 68%;
 }
 
 html,
@@ -12,8 +23,10 @@ body {
 }
 
 body {
-  background: #f7faf9;
-  color: #18211f;
+  background:
+    radial-gradient(circle at 12% 30%, hsl(44 45% 18% / 0.16), transparent 26rem),
+    linear-gradient(180deg, hsl(var(--surface)), hsl(var(--background)) 16rem);
+  color: hsl(var(--foreground));
 }
 
 input,
@@ -23,6 +36,13 @@ select {
 }
 
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2;
+  @apply focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-background;
 }
 
+.field-control {
+  @apply rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted focus-ring;
+}
+
+.file-control {
+  @apply block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-gold file:px-3 file:py-2 file:text-sm file:font-semibold file:text-background disabled:opacity-60;
+}

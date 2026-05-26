@@ -5,7 +5,7 @@ export default async function RepairDetailPage({ params }: { params: Promise<{ i
   const { id } = await params;
 
   return (
-    <AppShell>
+    <AppShell title="Detalle de reparacion" subtitle="Informacion completa del trabajo">
       <RepairDetail id={Number(id)} />
     </AppShell>
   );

@@ -5,10 +5,7 @@ export default async function EditRepairPage({ params }: { params: Promise<{ id:
   const { id } = await params;
 
   return (
-    <AppShell>
-      <div className="mb-5">
-        <h1 className="text-2xl font-semibold text-ink">Editar reparacion</h1>
-      </div>
+    <AppShell title="Editar reparacion" subtitle="Solo disponible mientras el trabajo esta en diagnostico">
       <RepairEditLoader id={Number(id)} />
     </AppShell>
   );

@@ -2,14 +2,21 @@
 
 import { clearTokens, getAccessToken, saveTokens } from "@/lib/auth";
 import type {
+  ClientListResponse,
   DashboardSummary,
   EnvelopeExtractionResponse,
+  InventoryItem,
+  InventoryListResponse,
+  InventoryPayload,
+  InventoryStatus,
+  InventorySummary,
   Repair,
   RepairImage,
   RepairImageType,
   RepairListResponse,
   RepairPayload,
   RepairStatus,
+  ReportsSummary,
   StatusCount,
   TokenResponse,
   User,
@@ -101,6 +108,52 @@ export function getRepairsByStatus() {
 
 export function getProfitByWeek() {
   return request<WeeklyProfit[]>("/dashboard/profit-by-week");
+}
+
+export function listClients(filters: { search?: string; page?: number; page_size?: number } = {}) {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) params.set(key, String(value));
+  });
+  const query = params.toString();
+  return request<ClientListResponse>(`/clients${query ? `?${query}` : ""}`);
+}
+
+export function getInventorySummary() {
+  return request<InventorySummary>("/inventory/summary");
+}
+
+export function listInventory(
+  filters: { search?: string; category?: string; status?: InventoryStatus | ""; page?: number; page_size?: number } = {}
+) {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) params.set(key, String(value));
+  });
+  const query = params.toString();
+  return request<InventoryListResponse>(`/inventory${query ? `?${query}` : ""}`);
+}
+
+export function createInventoryItem(payload: InventoryPayload) {
+  return request<InventoryItem>("/inventory", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function updateInventoryItem(id: number, payload: Partial<InventoryPayload>) {
+  return request<InventoryItem>(`/inventory/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function deleteInventoryItem(id: number) {
+  return request<void>(`/inventory/${id}`, { method: "DELETE" });
+}
+
+export function getReportsSummary() {
+  return request<ReportsSummary>("/reports/summary");
 }
 
 export type RepairFilters = {

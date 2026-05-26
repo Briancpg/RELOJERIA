@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -10,7 +10,27 @@ from app.models.repair import Repair, RepairStatus
 from app.schemas.dashboard import DashboardSummary, StatusCount, WeeklyProfit
 
 REALIZED_PROFIT_STATUSES = (RepairStatus.delivered,)
-FLOATING_PROFIT_STATUSES = (RepairStatus.pending, RepairStatus.in_progress)
+FLOATING_PROFIT_STATUSES = (
+    RepairStatus.diagnosis,
+    RepairStatus.in_repair,
+    RepairStatus.waiting_parts,
+    RepairStatus.ready,
+)
+STATUS_SORT_ORDER = (
+    RepairStatus.diagnosis,
+    RepairStatus.in_repair,
+    RepairStatus.waiting_parts,
+    RepairStatus.ready,
+    RepairStatus.delivered,
+    RepairStatus.cancelled,
+)
+
+
+def status_sort_expression():
+    return case(
+        *[(Repair.status == status, index) for index, status in enumerate(STATUS_SORT_ORDER)],
+        else_=len(STATUS_SORT_ORDER),
+    )
 
 
 class DashboardService:
@@ -62,7 +82,7 @@ class DashboardService:
             floating_weekly=self._profit_between(week_start, week_end, FLOATING_PROFIT_STATUSES),
             floating_monthly=self._profit_between(month_start, today, FLOATING_PROFIT_STATUSES),
             floating_profit=self._profit_between(statuses=FLOATING_PROFIT_STATUSES),
-            pending_repairs=self._count_status(RepairStatus.pending),
+            pending_repairs=self._count_status(RepairStatus.diagnosis),
             delivered_repairs=self._count_status(RepairStatus.delivered),
             accumulated_profit=self._profit_between(),
         )
@@ -72,7 +92,7 @@ class DashboardService:
             select(Repair.status, func.count())
             .where(Repair.deleted_at.is_(None))
             .group_by(Repair.status)
-            .order_by(Repair.status)
+            .order_by(status_sort_expression())
         )
         return [StatusCount(status=str(status), count=count) for status, count in self.db.execute(statement).all()]
 

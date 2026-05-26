@@ -43,7 +43,7 @@ def test_extraction_maps_structured_openai_json(monkeypatch):
                 '"repair_cost":{"value":2500,"confidence":0.9},'
                 '"deposit_amount":{"value":500,"confidence":0.78},'
                 '"invoice_number":{"value":"F-102","confidence":0.84},'
-                '"status":{"value":"pending","confidence":0.7},'
+                '"status":{"value":"diagnosis","confidence":0.7},'
                 '"notes":{"value":"Cristal rayado","confidence":0.8},'
                 '"warnings":[]}'
             )

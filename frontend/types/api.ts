@@ -1,4 +1,4 @@
-export type RepairStatus = "pending" | "in_progress" | "delivered" | "cancelled";
+export type RepairStatus = "diagnosis" | "in_repair" | "waiting_parts" | "ready" | "delivered" | "cancelled";
 export type RepairImageType = "watch" | "envelope";
 
 export type TokenResponse = {
@@ -101,6 +101,86 @@ export type WeeklyProfit = {
   week_start: string;
   week_end: string;
   total_profit: string;
+};
+
+export type ClientSummary = {
+  client_key: string;
+  customer_name: string;
+  customer_phone: string | null;
+  customer_document_id: string | null;
+  total_repairs: number;
+  active_repairs: number;
+  delivered_repairs: number;
+  total_spent: string;
+  last_repair_date: string | null;
+};
+
+export type ClientListResponse = {
+  items: ClientSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
+export type InventoryStatus = "available" | "low_stock" | "exhausted";
+
+export type InventoryItem = {
+  id: number;
+  reference: string;
+  name: string;
+  category: string;
+  brand: string | null;
+  description: string | null;
+  stock_quantity: number;
+  minimum_stock: number;
+  unit_price: string;
+  location: string | null;
+  status: InventoryStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InventoryPayload = {
+  reference: string;
+  name: string;
+  category: string;
+  brand?: string | null;
+  description?: string | null;
+  stock_quantity: number;
+  minimum_stock: number;
+  unit_price: string;
+  location?: string | null;
+};
+
+export type InventoryListResponse = {
+  items: InventoryItem[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
+export type InventorySummary = {
+  total_items: number;
+  available_items: number;
+  low_stock_items: number;
+  exhausted_items: number;
+};
+
+export type NameCount = {
+  name: string;
+  count: number;
+};
+
+export type ReportsSummary = {
+  currency: string;
+  total_repairs: number;
+  total_estimated_revenue: string;
+  collected_revenue: string;
+  pending_revenue: string;
+  registered_clients: number;
+  status_counts: NameCount[];
+  brand_counts: NameCount[];
+  inventory: InventorySummary;
 };
 
 export type ExtractedRepairFields = Partial<{

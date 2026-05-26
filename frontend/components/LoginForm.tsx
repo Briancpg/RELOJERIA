@@ -26,42 +26,41 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="w-full max-w-sm rounded-lg border border-line bg-white p-5 shadow-sm">
+    <form onSubmit={onSubmit} className="w-full max-w-sm rounded-lg border border-border bg-card p-5 shadow-glow">
       <div className="mb-5">
-        <h1 className="text-xl font-semibold text-ink">Acceso privado</h1>
+        <h1 className="text-xl font-semibold text-foreground">Acceso privado</h1>
         <p className="mt-1 text-sm text-muted">Gestion de reparaciones del taller.</p>
       </div>
       <label className="mb-3 block">
-        <span className="mb-1 block text-sm font-medium text-ink">Email</span>
+        <span className="mb-1 block text-sm font-medium text-foreground">Email</span>
         <input
           type="email"
           autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         />
       </label>
       <label className="mb-4 block">
-        <span className="mb-1 block text-sm font-medium text-ink">Password</span>
+        <span className="mb-1 block text-sm font-medium text-foreground">Password</span>
         <input
           type="password"
           autoComplete="current-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         />
       </label>
-      {error ? <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="mb-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p> : null}
       <button
         type="submit"
         disabled={loading}
-        className="focus-ring w-full rounded-md bg-accent px-4 py-2.5 font-medium text-white disabled:opacity-60"
+        className="focus-ring w-full rounded-md bg-gold px-4 py-2.5 font-semibold text-background disabled:opacity-60"
       >
         {loading ? "Entrando..." : "Entrar"}
       </button>
     </form>
   );
 }
-

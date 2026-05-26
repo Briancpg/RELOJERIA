@@ -64,31 +64,36 @@ def test_week_bounds_are_monday_to_sunday():
 
 def test_dashboard_profit_status_groups():
     assert REALIZED_PROFIT_STATUSES == (RepairStatus.delivered,)
-    assert RepairStatus.pending in FLOATING_PROFIT_STATUSES
-    assert RepairStatus.in_progress in FLOATING_PROFIT_STATUSES
+    assert RepairStatus.diagnosis in FLOATING_PROFIT_STATUSES
+    assert RepairStatus.in_repair in FLOATING_PROFIT_STATUSES
+    assert RepairStatus.waiting_parts in FLOATING_PROFIT_STATUSES
+    assert RepairStatus.ready in FLOATING_PROFIT_STATUSES
     assert RepairStatus.delivered not in FLOATING_PROFIT_STATUSES
     assert RepairStatus.cancelled not in FLOATING_PROFIT_STATUSES
 
 
-def test_only_four_repair_statuses_are_allowed():
+def test_repair_workflow_statuses_are_allowed():
     assert tuple(status.value for status in RepairStatus) == (
-        "pending",
-        "in_progress",
+        "diagnosis",
+        "in_repair",
+        "waiting_parts",
+        "ready",
         "delivered",
         "cancelled",
     )
+    assert not hasattr(RepairStatus, "pending")
     assert not hasattr(RepairStatus, "completed")
 
 
-def test_non_pending_repair_rejects_field_edits():
-    service = make_service(make_repair(RepairStatus.in_progress))
+def test_non_diagnosis_repair_rejects_field_edits():
+    service = make_service(make_repair(RepairStatus.in_repair))
 
-    with pytest.raises(AppError, match="pendiente"):
+    with pytest.raises(AppError, match="diagnostico"):
         service.update(1, RepairUpdate(brand="Citizen"))
 
 
-def test_non_pending_repair_allows_status_change_only():
-    service = make_service(make_repair(RepairStatus.in_progress))
+def test_non_diagnosis_repair_allows_status_change_only():
+    service = make_service(make_repair(RepairStatus.in_repair))
 
     updated = service.update(1, RepairUpdate(status=RepairStatus.delivered))
 

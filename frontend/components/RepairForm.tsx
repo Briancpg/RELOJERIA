@@ -30,7 +30,7 @@ function today() {
 }
 
 function RequiredMark() {
-  return <span className="text-red-700">*</span>;
+  return <span className="text-danger">*</span>;
 }
 
 export function RepairForm({ repair }: { repair?: Repair }) {
@@ -60,7 +60,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
     repair_cost: repair?.repair_cost ?? "",
     deposit_amount: repair?.deposit_amount ?? "",
     watchmaker_percentage: repair?.watchmaker_percentage ?? "50",
-    status: repair?.status ?? "pending",
+    status: repair?.status ?? "diagnosis",
     customer_name: repair?.customer_name ?? "",
     customer_phone: repair?.customer_phone ?? "",
     customer_document_id: repair?.customer_document_id ?? "",
@@ -81,7 +81,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
       repair_cost: "",
       deposit_amount: "",
       watchmaker_percentage: "50",
-      status: "pending",
+      status: "diagnosis",
       customer_name: "",
       customer_phone: "",
       customer_document_id: "",
@@ -323,9 +323,9 @@ export function RepairForm({ repair }: { repair?: Repair }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-line bg-white p-4 shadow-sm">
+    <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-glow">
       {error ? (
-        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
           <p>{error}</p>
           {createdRepairId ? (
             <Link href={`/repairs/${createdRepairId}`} className="mt-2 inline-flex font-medium underline">
@@ -335,7 +335,9 @@ export function RepairForm({ repair }: { repair?: Repair }) {
         </div>
       ) : null}
 
-      {success ? <div className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">{success}</div> : null}
+      {success ? (
+        <div className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">{success}</div>
+      ) : null}
 
       <p className="text-sm text-muted">
         <RequiredMark /> Campos requeridos para guardar: fecha actual, marca, modelo, descripcion, porcentaje, cliente y telefono.
@@ -343,9 +345,9 @@ export function RepairForm({ repair }: { repair?: Repair }) {
 
       {!repair ? (
         <section className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-md border border-line bg-surface p-3">
+          <div className="rounded-md border border-border bg-background/50 p-3">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-ink">Fotos del reloj</span>
+              <span className="mb-1 block text-sm font-medium text-foreground">Fotos del reloj</span>
               <input
                 ref={watchInputRef}
                 type="file"
@@ -354,25 +356,25 @@ export function RepairForm({ repair }: { repair?: Repair }) {
                 multiple
                 disabled={watchPhotos.length >= MAX_WATCH_PHOTOS}
                 onChange={(event) => addWatchPhotos(event.target.files)}
-                className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-medium file:text-white disabled:opacity-60"
+                className="file-control"
               />
             </label>
             <p className="mt-2 text-sm text-muted">
               {watchPhotos.length}/{MAX_WATCH_PHOTOS} foto(s) seleccionada(s)
             </p>
-            {watchPhotosMessage ? <p className="mt-1 text-sm text-red-700">{watchPhotosMessage}</p> : null}
+            {watchPhotosMessage ? <p className="mt-1 text-sm text-danger">{watchPhotosMessage}</p> : null}
             {watchPhotos.length ? (
               <div className="mt-3 space-y-2">
                 {watchPhotos.map((file, index) => (
                   <div
                     key={`${file.name}-${file.lastModified}-${index}`}
-                    className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm"
+                    className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 text-sm"
                   >
                     <span className="min-w-0 truncate text-muted">{file.name}</span>
                     <button
                       type="button"
                       onClick={() => removeWatchPhoto(index)}
-                      className="focus-ring rounded-md border border-red-200 px-3 py-1 font-medium text-red-700"
+                      className="focus-ring rounded-md border border-danger/30 px-3 py-1 font-medium text-danger"
                     >
                       Quitar
                     </button>
@@ -382,10 +384,10 @@ export function RepairForm({ repair }: { repair?: Repair }) {
             ) : null}
           </div>
 
-          <div className="rounded-md border border-line bg-surface p-3">
+          <div className="rounded-md border border-border bg-background/50 p-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-medium text-ink">Sobre de reparacion</p>
+                <p className="text-sm font-medium text-foreground">Sobre de reparacion</p>
                 <p className="mt-1 text-sm text-muted">
                   {showEnvelopeOption ? "Lectura con Vision AI activa" : "Lectura con Vision AI desactivada"}
                 </p>
@@ -394,7 +396,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
                 type="button"
                 onClick={() => toggleEnvelopeOption(!showEnvelopeOption)}
                 className={`focus-ring rounded-md px-4 py-2 text-sm font-medium ${
-                  showEnvelopeOption ? "border border-line bg-white text-muted" : "bg-accent text-white"
+                  showEnvelopeOption ? "border border-border bg-card text-muted" : "bg-gold text-background"
                 }`}
               >
                 {showEnvelopeOption ? "Desactivar" : "Leer con IA"}
@@ -402,21 +404,21 @@ export function RepairForm({ repair }: { repair?: Repair }) {
             </div>
 
             {showEnvelopeOption ? (
-              <div className="mt-4 space-y-3 border-t border-line pt-3">
-                <div className="rounded-md border border-line bg-white p-3">
+              <div className="mt-4 space-y-3 border-t border-border pt-3">
+                <div className="rounded-md border border-border bg-card p-3">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-ink">Foto del sobre</span>
+                    <span className="mb-2 block text-sm font-medium text-foreground">Foto del sobre</span>
                     <input
                       ref={envelopeInputRef}
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
                       capture="environment"
                       onChange={(event) => setEnvelopePhoto(event.target.files?.[0] ?? null)}
-                      className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
+                      className="file-control"
                     />
                   </label>
                   {envelopePhoto ? (
-                    <div className="mt-3 rounded-md bg-surface px-3 py-2">
+                    <div className="mt-3 rounded-md border border-border bg-background/60 px-3 py-2">
                       <p className="truncate text-sm text-muted">{envelopePhoto.name}</p>
                     </div>
                   ) : null}
@@ -427,7 +429,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
                     type="button"
                     disabled={!envelopePhoto || extracting}
                     onClick={readEnvelope}
-                    className="focus-ring rounded-md bg-ink px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="focus-ring rounded-md bg-gold px-4 py-2 text-sm font-semibold text-background disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {extracting ? "Leyendo..." : "Leer sobre"}
                   </button>
@@ -435,7 +437,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
                     <button
                       type="button"
                       onClick={removeEnvelopePhoto}
-                      className="focus-ring rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700"
+                      className="focus-ring rounded-md border border-danger/30 bg-card px-4 py-2 text-sm font-medium text-danger"
                     >
                       Quitar imagen
                     </button>
@@ -443,19 +445,19 @@ export function RepairForm({ repair }: { repair?: Repair }) {
                 </div>
 
                 {extractionMessage ? (
-                  <div className="max-h-40 overflow-y-auto rounded-md border border-line bg-white p-3">
-                    <p className="mb-1 text-sm font-medium text-ink">Resultado de Vision AI</p>
+                  <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-card p-3">
+                    <p className="mb-1 text-sm font-medium text-foreground">Resultado de Vision AI</p>
                     <p className="break-words text-sm leading-6 text-muted">{extractionMessage}</p>
                   </div>
                 ) : null}
 
                 {extractionSuggestions.length ? (
-                  <div className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3">
-                    <p className="text-sm font-medium text-ink">Sugerencias para confirmar</p>
+                  <div className="space-y-2 rounded-md border border-warning/30 bg-warning/10 p-3">
+                    <p className="text-sm font-medium text-foreground">Sugerencias para confirmar</p>
                     {extractionSuggestions.map((suggestion) => (
-                      <div key={suggestion.key} className="grid gap-2 rounded-md bg-white p-2 text-sm sm:grid-cols-[1fr_auto]">
+                      <div key={suggestion.key} className="grid gap-2 rounded-md border border-border bg-card p-2 text-sm sm:grid-cols-[1fr_auto]">
                         <div className="min-w-0">
-                          <p className="font-medium text-ink">
+                          <p className="font-medium text-foreground">
                             {suggestion.label} ({Math.round(suggestion.confidence * 100)}%)
                           </p>
                           <p className="break-words text-muted">{suggestion.value}</p>
@@ -464,14 +466,14 @@ export function RepairForm({ repair }: { repair?: Repair }) {
                           <button
                             type="button"
                             onClick={() => applySuggestion(suggestion)}
-                            className="focus-ring rounded-md bg-accent px-3 py-2 font-medium text-white"
+                            className="focus-ring rounded-md bg-gold px-3 py-2 font-semibold text-background"
                           >
                             Usar
                           </button>
                           <button
                             type="button"
                             onClick={() => dismissSuggestion(suggestion)}
-                            className="focus-ring rounded-md border border-line px-3 py-2 text-muted"
+                            className="focus-ring rounded-md border border-border px-3 py-2 text-muted"
                           >
                             Ignorar
                           </button>
@@ -488,7 +490,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">
+          <span className="mb-1 block text-sm font-medium text-foreground">
             Fecha actual <RequiredMark />
           </span>
           <input
@@ -496,18 +498,18 @@ export function RepairForm({ repair }: { repair?: Repair }) {
             required
             value={form.repair_date}
             onChange={(event) => setField("repair_date", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">Estado</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">Estado</span>
           <select
             value={form.status}
             onChange={(event) => setField("status", event.target.value as RepairStatus)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           >
             {statuses.map((status) => (
               <option key={status} value={status}>
@@ -521,51 +523,51 @@ export function RepairForm({ repair }: { repair?: Repair }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">
+          <span className="mb-1 block text-sm font-medium text-foreground">
             Marca <RequiredMark />
           </span>
           <input
             required
             value={form.brand}
             onChange={(event) => setField("brand", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">
+          <span className="mb-1 block text-sm font-medium text-foreground">
             Modelo <RequiredMark />
           </span>
           <input
             required
             value={form.model}
             onChange={(event) => setField("model", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
       </div>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-ink">Color del reloj</span>
+        <span className="mb-1 block text-sm font-medium text-foreground">Color del reloj</span>
         <input
           value={form.watch_color ?? ""}
           onChange={(event) => setField("watch_color", event.target.value)}
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         />
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-ink">Especificaciones del reloj</span>
+        <span className="mb-1 block text-sm font-medium text-foreground">Especificaciones del reloj</span>
         <textarea
           rows={3}
           value={form.watch_specifications ?? ""}
           onChange={(event) => setField("watch_specifications", event.target.value)}
           placeholder="Color, tamano, tipo de correa, cristal, movimiento u otros detalles visibles"
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         />
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-ink">
+        <span className="mb-1 block text-sm font-medium text-foreground">
           Descripcion de reparacion <RequiredMark />
         </span>
         <textarea
@@ -573,35 +575,35 @@ export function RepairForm({ repair }: { repair?: Repair }) {
           rows={4}
           value={form.description}
           onChange={(event) => setField("description", event.target.value)}
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">Costo</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">Costo</span>
           <input
             type="number"
             min="0"
             step="0.01"
             value={form.repair_cost}
             onChange={(event) => setField("repair_cost", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">Abono</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">Abono</span>
           <input
             type="number"
             min="0"
             step="0.01"
             value={form.deposit_amount ?? ""}
             onChange={(event) => setField("deposit_amount", event.target.value || null)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">
+          <span className="mb-1 block text-sm font-medium text-foreground">
             Porcentaje relojero <RequiredMark />
           </span>
           <input
@@ -612,26 +614,26 @@ export function RepairForm({ repair }: { repair?: Repair }) {
             required
             value={form.watchmaker_percentage}
             onChange={(event) => setField("watchmaker_percentage", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
       </div>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-ink">
+        <span className="mb-1 block text-sm font-medium text-foreground">
           Cliente <RequiredMark />
         </span>
         <input
           required
           value={form.customer_name ?? ""}
           onChange={(event) => setField("customer_name", event.target.value)}
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">
+          <span className="mb-1 block text-sm font-medium text-foreground">
             Telefono <RequiredMark />
           </span>
           <input
@@ -640,41 +642,41 @@ export function RepairForm({ repair }: { repair?: Repair }) {
             required
             value={form.customer_phone ?? ""}
             onChange={(event) => setField("customer_phone", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">Cedula</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">Cedula</span>
           <input
             value={form.customer_document_id ?? ""}
             onChange={(event) => setField("customer_document_id", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
         <label>
-          <span className="mb-1 block text-sm font-medium text-ink">Numero de factura</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">Numero de factura</span>
           <input
             value={form.invoice_number ?? ""}
             onChange={(event) => setField("invoice_number", event.target.value)}
-            className="focus-ring w-full rounded-md border border-line px-3 py-2"
+            className="field-control w-full"
           />
         </label>
       </div>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-ink">Notas</span>
+        <span className="mb-1 block text-sm font-medium text-foreground">Notas</span>
         <textarea
           rows={3}
           value={form.notes ?? ""}
           onChange={(event) => setField("notes", event.target.value)}
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         />
       </label>
 
       <button
         type="submit"
         disabled={loading}
-        className="focus-ring w-full rounded-md bg-accent px-4 py-3 font-medium text-white sm:w-auto"
+        className="focus-ring w-full rounded-md bg-gold px-4 py-3 font-semibold text-background sm:w-auto"
       >
         {loading ? "Guardando..." : "Guardar reparacion"}
       </button>

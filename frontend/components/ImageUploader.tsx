@@ -30,30 +30,30 @@ export function ImageUploader({
   }
 
   return (
-    <div className="rounded-lg border border-line bg-white p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <label className="mb-3 block">
-        <span className="mb-2 block font-medium text-ink">Tipo de imagen</span>
+        <span className="mb-2 block font-medium text-foreground">Tipo de imagen</span>
         <select
           value={imageType}
           onChange={(event) => setImageType(event.target.value as RepairImageType)}
-          className="focus-ring w-full rounded-md border border-line px-3 py-2"
+          className="field-control w-full"
         >
           <option value="watch">Foto del reloj</option>
           <option value="envelope">Sobre de reparacion</option>
         </select>
       </label>
       <label className="block">
-        <span className="mb-2 block font-medium text-ink">Imagen</span>
+        <span className="mb-2 block font-medium text-foreground">Imagen</span>
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
           capture="environment"
           onChange={(event) => upload(event.target.files?.[0])}
-          className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
+          className="file-control"
         />
       </label>
       {loading ? <p className="mt-2 text-sm text-muted">Subiendo...</p> : null}
-      {error ? <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="mt-2 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p> : null}
     </div>
   );
 }
