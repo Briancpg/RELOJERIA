@@ -12,28 +12,37 @@
 Copiar al VPS:
 
 ```text
-docker-compose.prod.yml
-infra/nginx/default.conf
+docker-compose.api.yml
+infra/nginx/api.conf
 scripts/backup-postgres.sh
 .env
 ```
 
 Tambien puedes copiar todo el repo, pero en produccion se recomienda usar las imagenes ya publicadas en Docker Hub.
 
-## Despliegue Con Imagenes Publicadas
+Usa `docker-compose.api.yml` cuando el frontend esta en Cloudflare Pages. Usa `docker-compose.prod.yml` solo si quieres servir frontend, backend, PostgreSQL y Nginx completos desde el VPS.
 
-`docker-compose.prod.yml` ya usa:
+## Despliegue Recomendado: API En VPS Y Frontend En Pages
+
+`docker-compose.api.yml` usa:
 
 - `brian2525/relojeria-backend:latest`
-- `brian2525/relojeria-frontend:latest`
+- `postgres:16-alpine`
+- `nginx:1.27-alpine`
 
 Luego:
 
 ```bash
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
-docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.api.yml pull
+docker compose -f docker-compose.api.yml up -d
+docker compose -f docker-compose.api.yml ps
+docker compose -f docker-compose.api.yml logs -f backend
+```
+
+En Cloudflare Pages configura:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=https://api.tudominio.com/api/v1
 ```
 
 ## TLS
@@ -54,6 +63,12 @@ sh scripts/backup-postgres.sh
 ```
 
 Los backups se guardan en `backups/postgres/`, fuera del volumen de PostgreSQL.
+
+Si usas `docker-compose.prod.yml`, ejecuta:
+
+```bash
+COMPOSE_FILE=docker-compose.prod.yml sh scripts/backup-postgres.sh
+```
 
 ## Checklist
 

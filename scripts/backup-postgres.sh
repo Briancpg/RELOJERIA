@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.api.yml}"
 BACKUP_DIR="${BACKUP_DIR:-./backups/postgres}"
 POSTGRES_DB="${POSTGRES_DB:-watch}"
 POSTGRES_USER="${POSTGRES_USER:-watch}"

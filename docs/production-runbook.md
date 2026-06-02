@@ -3,9 +3,9 @@
 ## Orden De Puesta En Marcha
 
 1. Rotar secretos expuestos y generar valores nuevos para produccion.
-2. Crear `.env` en el VPS usando `.env.example` como plantilla.
+2. Crear `.env` en el VPS usando `infra/env.production.example` como plantilla.
 3. Configurar VPS Ubuntu con Docker Engine y Docker Compose plugin.
-4. Levantar la app con `docker-compose.prod.yml`.
+4. Levantar la API con `docker-compose.api.yml`.
 5. Validar por IP antes de tocar DNS.
 6. Configurar dominio en Cloudflare.
 7. Validar por dominio con HTTPS.
@@ -38,10 +38,10 @@ Guardar estos valores solo en `.env` del VPS. No pegarlos en chat, GitHub ni doc
 ## Comandos Base En VPS
 
 ```bash
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
-docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.api.yml pull
+docker compose -f docker-compose.api.yml up -d
+docker compose -f docker-compose.api.yml ps
+docker compose -f docker-compose.api.yml logs -f backend
 ```
 
 ## Validacion Por IP
@@ -57,20 +57,26 @@ Luego abrir `http://IP_DEL_VPS`, iniciar sesion con el admin y crear una reparac
 Despues de configurar Cloudflare, actualizar `CORS_ORIGINS` en `.env`:
 
 ```env
-CORS_ORIGINS=https://tudominio.com
+CORS_ORIGINS=https://tudominio.com,https://taller-relojeria.pages.dev
 ```
 
 Reiniciar backend:
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d --force-recreate backend
-docker compose -f docker-compose.prod.yml restart nginx
+docker compose -f docker-compose.api.yml up -d --force-recreate backend
+docker compose -f docker-compose.api.yml restart nginx
 ```
 
 Validar:
 
 ```bash
-curl https://tudominio.com/health
+curl https://api.tudominio.com/health
+```
+
+En Cloudflare Pages, configurar:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=https://api.tudominio.com/api/v1
 ```
 
 ## Backup PostgreSQL
@@ -84,7 +90,7 @@ sh scripts/backup-postgres.sh
 Restaurar en un entorno temporal:
 
 ```bash
-gzip -dc backups/postgres/ARCHIVO.sql.gz | docker compose -f docker-compose.prod.yml exec -T postgres psql -U watch -d watch
+gzip -dc backups/postgres/ARCHIVO.sql.gz | docker compose -f docker-compose.api.yml exec -T postgres psql -U watch -d watch
 ```
 
 ## Checklist Go-Live

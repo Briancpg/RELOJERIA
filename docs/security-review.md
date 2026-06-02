@@ -19,8 +19,10 @@ Revision local del monolito FastAPI/Next.js, Docker Compose, Nginx, autenticacio
 - `bcrypt` se fijo en `4.0.1` para compatibilidad limpia con `passlib`.
 - Next.js se actualizo a `16.2.6`.
 - `postcss` se fijo en `8.5.10` con override para cerrar el audit de produccion.
-- `npm audit --audit-level=high` reporta `0 vulnerabilities`.
+- `npm audit --omit=dev --audit-level=moderate` reporta `0 vulnerabilities`.
+- `python-multipart` se actualizo a `0.0.29` para corregir el DoS del parser multipart antes de `0.0.26`.
 - R2 real fue probado con upload/delete y el bucket se mantiene privado.
+- Cloudflare Pages compila desde `frontend` y las rutas dinamicas usan Edge Runtime.
 
 ### Pendiente Antes De Produccion
 
@@ -44,4 +46,4 @@ Revision local del monolito FastAPI/Next.js, Docker Compose, Nginx, autenticacio
 - El login no tiene rate limiting en v1.
 - Los refresh tokens no tienen revocacion en servidor.
 - `R2_PUBLIC_BASE_URL` puede exponer imagenes si se usa CDN publico.
-- Las dependencias frontend reportan vulnerabilidades npm que requieren analisis separado para evitar upgrades rompientes.
+- OpenAI Vision depende de cuota/billing y debe probarse con credenciales nuevas antes de entrega.

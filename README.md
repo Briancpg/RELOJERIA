@@ -72,11 +72,17 @@ PostgreSQL y Nginx se mantienen como imagenes oficiales.
 
 ## Produccion
 
-Para VPS Ubuntu usa el compose de produccion:
+Para la entrega recomendada, usa Cloudflare Pages para el frontend y el compose de API en el VPS:
 
 ```bash
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.api.yml pull
+docker compose -f docker-compose.api.yml up -d
+```
+
+Configura en Cloudflare Pages:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=https://api.tudominio.com/api/v1
 ```
 
 El orden operativo completo esta en `docs/production-runbook.md`.
@@ -86,5 +92,6 @@ El orden operativo completo esta en `docs/production-runbook.md`.
 - `docs/cloudflare-r2.md`
 - `docs/deployment-vps.md`
 - `docs/production-runbook.md`
+- `docs/client-delivery-checklist.md`
 - `docs/security-review.md`
 - `docs/ux-flow.md`
