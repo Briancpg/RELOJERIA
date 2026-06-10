@@ -44,6 +44,12 @@ docker compose -f docker-compose.api.yml ps
 docker compose -f docker-compose.api.yml logs -f backend
 ```
 
+Desde la maquina local, con acceso SSH al VPS, se puede automatizar la copia y arranque:
+
+```bash
+DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
+```
+
 ## Validacion Por IP
 
 ```bash
@@ -57,7 +63,7 @@ Luego abrir `http://IP_DEL_VPS`, iniciar sesion con el admin y crear una reparac
 Despues de configurar Cloudflare, actualizar `CORS_ORIGINS` en `.env`:
 
 ```env
-CORS_ORIGINS=https://tudominio.com,https://taller-relojeria.pages.dev
+CORS_ORIGINS=https://tutallerrelojero.com,https://www.tutallerrelojero.com,https://taller-relojeria.pages.dev
 ```
 
 Reiniciar backend:
@@ -70,13 +76,13 @@ docker compose -f docker-compose.api.yml restart nginx
 Validar:
 
 ```bash
-curl https://api.tudominio.com/health
+curl https://api.tutallerrelojero.com/health
 ```
 
 En Cloudflare Pages, configurar:
 
 ```text
-NEXT_PUBLIC_API_BASE_URL=https://api.tudominio.com/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://api.tutallerrelojero.com/api/v1
 ```
 
 ## Backup PostgreSQL

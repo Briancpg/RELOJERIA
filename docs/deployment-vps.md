@@ -39,10 +39,16 @@ docker compose -f docker-compose.api.yml ps
 docker compose -f docker-compose.api.yml logs -f backend
 ```
 
+Tambien puedes hacerlo desde tu maquina local con el script incluido. Crea primero `.env.production` local usando `infra/env.production.example` como base. Ese archivo esta ignorado por Git.
+
+```bash
+DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
+```
+
 En Cloudflare Pages configura:
 
 ```text
-NEXT_PUBLIC_API_BASE_URL=https://api.tudominio.com/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://api.tutallerrelojero.com/api/v1
 ```
 
 ## TLS

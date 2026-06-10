@@ -14,7 +14,7 @@
 - API: VPS Ubuntu usando `docker-compose.api.yml`.
 - Base de datos: PostgreSQL en volumen Docker persistente.
 - Imágenes: Cloudflare R2 privado.
-- HTTPS: Cloudflare Proxy delante de `api.tudominio.com`.
+- HTTPS: Cloudflare Proxy delante de `api.tutallerrelojero.com`.
 
 ## Variables Que Deben Quedar Reales
 
@@ -22,13 +22,13 @@
 - En Cloudflare Pages, configurar:
 
 ```text
-NEXT_PUBLIC_API_BASE_URL=https://api.tudominio.com/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://api.tutallerrelojero.com/api/v1
 ```
 
 - En backend, configurar:
 
 ```text
-CORS_ORIGINS=https://tudominio.com,https://taller-relojeria.pages.dev
+CORS_ORIGINS=https://tutallerrelojero.com,https://www.tutallerrelojero.com,https://taller-relojeria.pages.dev
 ```
 
 ## Pruebas De Aceptacion
@@ -49,7 +49,7 @@ CORS_ORIGINS=https://tudominio.com,https://taller-relojeria.pages.dev
 
 ## Go-Live
 
-- No entregar hasta que `https://api.tudominio.com/health` responda OK.
+- No entregar hasta que `https://api.tutallerrelojero.com/health` responda OK.
 - No entregar hasta que Pages use la URL real del API.
 - No entregar hasta que R2 y OpenAI Vision funcionen con credenciales nuevas.
 - Entregar al cliente URL, usuario admin, flujo basico de uso y procedimiento de backup.
