@@ -10,8 +10,9 @@
 
 ## Entrega Recomendada
 
+- Staging: `https://staging.tutallerrelojero.com` y `https://api-staging.tutallerrelojero.com`.
 - Frontend: Cloudflare Pages.
-- API: VPS Ubuntu usando `docker-compose.api.yml`.
+- API: VPS Ubuntu usando `docker-compose.vps.yml`.
 - Base de datos: PostgreSQL en volumen Docker persistente.
 - Imágenes: Cloudflare R2 privado.
 - HTTPS: Cloudflare Proxy delante de `api.tutallerrelojero.com`.
@@ -32,6 +33,8 @@ CORS_ORIGINS=https://tutallerrelojero.com,https://www.tutallerrelojero.com,https
 ```
 
 ## Pruebas De Aceptacion
+
+Ejecutar primero en staging y repetir un smoke test final en produccion.
 
 - Login con admin de produccion.
 - Crear reparacion con cliente y telefono.

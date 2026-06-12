@@ -14,6 +14,8 @@
 10. Crear y probar backup PostgreSQL.
 11. Hacer go-live.
 
+Para trabajar con staging antes de produccion, seguir tambien `docs/environment-strategy.md`.
+
 ## Secretos De Produccion
 
 Generar valores fuertes en el VPS:
@@ -38,16 +40,16 @@ Guardar estos valores solo en `.env` del VPS. No pegarlos en chat, GitHub ni doc
 ## Comandos Base En VPS
 
 ```bash
-docker compose -f docker-compose.api.yml pull
-docker compose -f docker-compose.api.yml up -d
-docker compose -f docker-compose.api.yml ps
-docker compose -f docker-compose.api.yml logs -f backend
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml pull
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml up -d
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml ps
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml logs -f backend
 ```
 
 Desde la maquina local, con acceso SSH al VPS, se puede automatizar la copia y arranque:
 
 ```bash
-DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
+DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu DEPLOY_ENV=production ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
 ```
 
 ## Validacion Por IP
@@ -96,7 +98,7 @@ sh scripts/backup-postgres.sh
 Restaurar en un entorno temporal:
 
 ```bash
-gzip -dc backups/postgres/ARCHIVO.sql.gz | docker compose -f docker-compose.api.yml exec -T postgres psql -U watch -d watch
+gzip -dc backups/postgres/ARCHIVO.sql.gz | docker compose -p relojeria-prod -f docker-compose.vps.yml exec -T postgres psql -U watch -d watch
 ```
 
 ## Checklist Go-Live

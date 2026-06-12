@@ -86,6 +86,7 @@ NEXT_PUBLIC_API_BASE_URL=https://api.tutallerrelojero.com/api/v1
 ```
 
 El orden operativo completo esta en `docs/production-runbook.md`.
+La estrategia de development/staging/production esta en `docs/environment-strategy.md`.
 
 ## Documentacion Operativa
 

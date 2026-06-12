@@ -12,8 +12,8 @@
 Copiar al VPS:
 
 ```text
-docker-compose.api.yml
-infra/nginx/api.conf
+docker-compose.vps.yml
+infra/nginx/relojeria-vps.conf
 scripts/backup-postgres.sh
 .env
 ```
@@ -24,25 +24,32 @@ Usa `docker-compose.api.yml` cuando el frontend esta en Cloudflare Pages. Usa `d
 
 ## Despliegue Recomendado: API En VPS Y Frontend En Pages
 
-`docker-compose.api.yml` usa:
+`docker-compose.vps.yml` usa:
 
 - `brian2525/relojeria-backend:latest`
 - `postgres:16-alpine`
-- `nginx:1.27-alpine`
+- puerto local configurable con `BACKEND_HOST_PORT`
+
+Nginx corre en el VPS y enruta:
+
+```text
+api.tutallerrelojero.com         -> 127.0.0.1:8001
+api-staging.tutallerrelojero.com -> 127.0.0.1:8002
+```
 
 Luego:
 
 ```bash
-docker compose -f docker-compose.api.yml pull
-docker compose -f docker-compose.api.yml up -d
-docker compose -f docker-compose.api.yml ps
-docker compose -f docker-compose.api.yml logs -f backend
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml pull
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml up -d
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml ps
+docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml logs -f backend
 ```
 
 Tambien puedes hacerlo desde tu maquina local con el script incluido. Crea primero `.env.production` local usando `infra/env.production.example` como base. Ese archivo esta ignorado por Git.
 
 ```bash
-DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
+DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu DEPLOY_ENV=production ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
 ```
 
 En Cloudflare Pages configura:
@@ -70,10 +77,10 @@ sh scripts/backup-postgres.sh
 
 Los backups se guardan en `backups/postgres/`, fuera del volumen de PostgreSQL.
 
-Si usas `docker-compose.prod.yml`, ejecuta:
+Para staging, ejecuta:
 
 ```bash
-COMPOSE_FILE=docker-compose.prod.yml sh scripts/backup-postgres.sh
+COMPOSE_PROJECT_NAME=relojeria-staging POSTGRES_DB=watch_staging sh scripts/backup-postgres.sh
 ```
 
 ## Checklist
