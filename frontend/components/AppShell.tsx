@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BarChart3, ClipboardList, LayoutDashboard, LogOut, Menu, Package, Plus, Users, Watch, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { clearTokens } from "@/lib/auth";
+import { me } from "@/lib/api";
+import type { UserRole } from "@/types/api";
 
 const links = [
   { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
   { href: "/repairs", label: "Ordenes", icon: ClipboardList },
-  { href: "/clientes", label: "Clientes", icon: Users },
-  { href: "/inventario", label: "Inventario", icon: Package },
-  { href: "/reportes", label: "Reportes", icon: BarChart3 },
+  { href: "/clientes", label: "Clientes", icon: Users, adminOnly: true },
+  { href: "/inventario", label: "Inventario", icon: Package, adminOnly: true },
+  { href: "/reportes", label: "Reportes", icon: BarChart3, adminOnly: true },
   { href: "/repairs/new", label: "Nueva orden", icon: Plus }
 ];
 
@@ -34,6 +36,13 @@ export function AppShell({ children, title, subtitle, actions, maxWidth = "2xl" 
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  useEffect(() => {
+    me()
+      .then((user) => setRole(user.role))
+      .catch(() => setRole(null));
+  }, []);
 
   function logout() {
     clearTokens();
@@ -42,7 +51,7 @@ export function AppShell({ children, title, subtitle, actions, maxWidth = "2xl" 
 
   const navigation = (
     <nav className="space-y-2">
-      {links.map((link) => {
+      {links.filter((link) => (role ? role !== "joyeria" || !link.adminOnly : !link.adminOnly)).map((link) => {
         const active =
           pathname === link.href ||
           (link.href === "/repairs" && pathname.startsWith("/repairs/") && pathname !== "/repairs/new");

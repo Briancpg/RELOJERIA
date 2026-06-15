@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createRepair, extractEnvelope, updateRepair, uploadRepairImage } from "@/lib/api";
-import type { ExtractedRepairFields, Repair, RepairPayload, RepairStatus } from "@/types/api";
+import { createRepair, extractEnvelope, me, updateRepair, uploadRepairImage } from "@/lib/api";
+import type { ExtractedRepairFields, Repair, RepairPayload, RepairStatus, UserRole } from "@/types/api";
 import { statusLabels } from "@/components/StatusBadge";
 
 const statuses = Object.keys(statusLabels) as RepairStatus[];
@@ -48,8 +48,11 @@ export function RepairForm({ repair }: { repair?: Repair }) {
   const [extracting, setExtracting] = useState(false);
   const [extractionMessage, setExtractionMessage] = useState("");
   const [extractionSuggestions, setExtractionSuggestions] = useState<ExtractionSuggestion[]>([]);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const canSeeInternalFields = role === "admin" || role === "maestro";
   const [form, setForm] = useState<RepairPayload>({
     repair_date: repair?.repair_date ?? today(),
+    exit_date: repair?.exit_date ?? null,
     envelope_date: repair?.envelope_date ?? "",
     envelope_raw_transcription: repair?.envelope_raw_transcription ?? "",
     brand: repair?.brand ?? "",
@@ -58,9 +61,10 @@ export function RepairForm({ repair }: { repair?: Repair }) {
     watch_specifications: repair?.watch_specifications ?? "",
     description: repair?.description ?? "",
     repair_cost: repair?.repair_cost ?? "",
+    internal_cost: repair?.internal_cost ?? "0",
     deposit_amount: repair?.deposit_amount ?? "",
-    watchmaker_percentage: repair?.watchmaker_percentage ?? "50",
-    status: repair?.status ?? "diagnosis",
+    watchmaker_percentage: repair?.watchmaker_percentage ?? "0",
+    status: repair?.status ?? "received",
     customer_name: repair?.customer_name ?? "",
     customer_phone: repair?.customer_phone ?? "",
     customer_document_id: repair?.customer_document_id ?? "",
@@ -68,9 +72,16 @@ export function RepairForm({ repair }: { repair?: Repair }) {
     notes: repair?.notes ?? ""
   });
 
+  useEffect(() => {
+    me()
+      .then((user) => setRole(user.role))
+      .catch(() => setRole(null));
+  }, []);
+
   function resetNewRepairForm() {
     setForm({
       repair_date: today(),
+      exit_date: null,
       envelope_date: null,
       envelope_raw_transcription: "",
       brand: "",
@@ -79,9 +90,10 @@ export function RepairForm({ repair }: { repair?: Repair }) {
       watch_specifications: "",
       description: "",
       repair_cost: "",
+      internal_cost: "0",
       deposit_amount: "",
-      watchmaker_percentage: "50",
-      status: "diagnosis",
+      watchmaker_percentage: "0",
+      status: "received",
       customer_name: "",
       customer_phone: "",
       customer_document_id: "",
@@ -193,7 +205,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
         value: fields.invoice_number,
         confidenceKey: "invoice_number"
       },
-      { key: "notes", label: "Notas", value: fields.notes, confidenceKey: "notes" }
+      ...(canSeeInternalFields ? [{ key: "notes" as keyof RepairPayload, label: "Notas", value: fields.notes, confidenceKey: "notes" }] : [])
     ];
 
     const autoFill = mappings.filter(
@@ -286,13 +298,15 @@ export function RepairForm({ repair }: { repair?: Repair }) {
       watch_color: form.watch_color || null,
       watch_specifications: form.watch_specifications || null,
       repair_cost: form.repair_cost || "0",
+      internal_cost: canSeeInternalFields ? form.internal_cost || "0" : "0",
       deposit_amount: form.deposit_amount || null,
+      watchmaker_percentage: canSeeInternalFields ? form.watchmaker_percentage || "0" : "0",
       customer_name: form.customer_name || "",
       customer_phone: form.customer_phone || "",
       customer_document_id: form.customer_document_id || null,
       invoice_number: form.invoice_number || null,
-      notes: form.notes || null,
-      envelope_raw_transcription: form.envelope_raw_transcription || null
+      notes: canSeeInternalFields ? form.notes || null : null,
+      envelope_raw_transcription: canSeeInternalFields ? form.envelope_raw_transcription || null : null
     };
     try {
       const saved = repair ? await updateRepair(repair.id, payload) : await createRepair(payload);
@@ -340,7 +354,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
       ) : null}
 
       <p className="text-sm text-muted">
-        <RequiredMark /> Campos requeridos para guardar: fecha actual, marca, modelo, descripcion, porcentaje, cliente y telefono.
+        <RequiredMark /> Campos requeridos para guardar: fecha actual, marca, modelo, descripcion, cliente y telefono.
       </p>
 
       {!repair ? (
@@ -503,23 +517,25 @@ export function RepairForm({ repair }: { repair?: Repair }) {
         </label>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label>
-          <span className="mb-1 block text-sm font-medium text-foreground">Estado</span>
-          <select
-            value={form.status}
-            onChange={(event) => setField("status", event.target.value as RepairStatus)}
-            className="field-control w-full"
-          >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
-                {statusLabels[status]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="hidden sm:block" aria-hidden="true" />
-      </div>
+      {canSeeInternalFields ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label>
+            <span className="mb-1 block text-sm font-medium text-foreground">Estado</span>
+            <select
+              value={form.status}
+              onChange={(event) => setField("status", event.target.value as RepairStatus)}
+              className="field-control w-full"
+            >
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {statusLabels[status]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="hidden sm:block" aria-hidden="true" />
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
@@ -579,9 +595,9 @@ export function RepairForm({ repair }: { repair?: Repair }) {
         />
       </label>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={`grid gap-4 ${canSeeInternalFields ? "sm:grid-cols-4" : "sm:grid-cols-2"}`}>
         <label>
-          <span className="mb-1 block text-sm font-medium text-foreground">Costo</span>
+          <span className="mb-1 block text-sm font-medium text-foreground">Precio cobrado</span>
           <input
             type="number"
             min="0"
@@ -591,6 +607,19 @@ export function RepairForm({ repair }: { repair?: Repair }) {
             className="field-control w-full"
           />
         </label>
+        {canSeeInternalFields ? (
+          <label>
+            <span className="mb-1 block text-sm font-medium text-foreground">Costo interno</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.internal_cost ?? "0"}
+              onChange={(event) => setField("internal_cost", event.target.value)}
+              className="field-control w-full"
+            />
+          </label>
+        ) : null}
         <label>
           <span className="mb-1 block text-sm font-medium text-foreground">Abono</span>
           <input
@@ -602,21 +631,20 @@ export function RepairForm({ repair }: { repair?: Repair }) {
             className="field-control w-full"
           />
         </label>
-        <label>
-          <span className="mb-1 block text-sm font-medium text-foreground">
-            Porcentaje relojero <RequiredMark />
-          </span>
-          <input
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            required
-            value={form.watchmaker_percentage}
-            onChange={(event) => setField("watchmaker_percentage", event.target.value)}
-            className="field-control w-full"
-          />
-        </label>
+        {canSeeInternalFields ? (
+          <label>
+            <span className="mb-1 block text-sm font-medium text-foreground">Porcentaje relojero</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={form.watchmaker_percentage}
+              onChange={(event) => setField("watchmaker_percentage", event.target.value)}
+              className="field-control w-full"
+            />
+          </label>
+        ) : null}
       </div>
 
       <label className="block">
@@ -663,15 +691,17 @@ export function RepairForm({ repair }: { repair?: Repair }) {
         </label>
       </div>
 
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-foreground">Notas</span>
-        <textarea
-          rows={3}
-          value={form.notes ?? ""}
-          onChange={(event) => setField("notes", event.target.value)}
-          className="field-control w-full"
-        />
-      </label>
+      {canSeeInternalFields ? (
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-foreground">Notas internas</span>
+          <textarea
+            rows={3}
+            value={form.notes ?? ""}
+            onChange={(event) => setField("notes", event.target.value)}
+            className="field-control w-full"
+          />
+        </label>
+      ) : null}
 
       <button
         type="submit"

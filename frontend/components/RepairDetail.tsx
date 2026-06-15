@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { deleteRepair, getRepair } from "@/lib/api";
-import type { Repair, RepairImage } from "@/types/api";
+import { deleteRepair, getRepair, me } from "@/lib/api";
+import type { Repair, RepairImage, UserRole } from "@/types/api";
 import { ImageUploader } from "@/components/ImageUploader";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -21,9 +21,14 @@ function imageTypeLabel(image: RepairImage) {
 export function RepairDetail({ id }: { id: number }) {
   const router = useRouter();
   const [repair, setRepair] = useState<Repair | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
   const [error, setError] = useState("");
+  const canManage = role === "admin" || role === "maestro";
 
   useEffect(() => {
+    me()
+      .then((user) => setRole(user.role))
+      .catch(() => setRole(null));
     getRepair(id)
       .then(setRepair)
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar"));
@@ -68,22 +73,32 @@ export function RepairDetail({ id }: { id: number }) {
           <StatusBadge status={repair.status} />
         </div>
         <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-md border border-border bg-background/60 p-3">
-            <dt className="text-sm text-muted">Costo</dt>
-            <dd className="font-semibold text-foreground">DOP {repair.repair_cost}</dd>
-          </div>
-          <div className="rounded-md border border-border bg-background/60 p-3">
-            <dt className="text-sm text-muted">Porcentaje</dt>
-            <dd className="font-semibold text-foreground">{repair.watchmaker_percentage}%</dd>
-          </div>
-          <div className="rounded-md border border-border bg-background/60 p-3">
-            <dt className="text-sm text-muted">{profitLabel(repair.status)}</dt>
-            <dd className="font-semibold text-foreground">DOP {repair.profit_amount}</dd>
-          </div>
-          <div className="rounded-md border border-border bg-background/60 p-3">
-            <dt className="text-sm text-muted">Abono</dt>
-            <dd className="font-semibold text-foreground">DOP {repair.deposit_amount ?? "0.00"}</dd>
-          </div>
+          {canManage ? (
+            <>
+              <div className="rounded-md border border-border bg-background/60 p-3">
+                <dt className="text-sm text-muted">Precio cobrado</dt>
+                <dd className="font-semibold text-foreground">DOP {repair.repair_cost}</dd>
+              </div>
+              <div className="rounded-md border border-border bg-background/60 p-3">
+                <dt className="text-sm text-muted">Costo interno</dt>
+                <dd className="font-semibold text-foreground">DOP {repair.internal_cost ?? "0.00"}</dd>
+              </div>
+              <div className="rounded-md border border-border bg-background/60 p-3">
+                <dt className="text-sm text-muted">Porcentaje</dt>
+                <dd className="font-semibold text-foreground">{repair.watchmaker_percentage ?? "0"}%</dd>
+              </div>
+              <div className="rounded-md border border-border bg-background/60 p-3">
+                <dt className="text-sm text-muted">{profitLabel(repair.status)}</dt>
+                <dd className="font-semibold text-foreground">DOP {repair.profit_amount ?? "0.00"}</dd>
+              </div>
+            </>
+          ) : null}
+          {canManage ? (
+            <div className="rounded-md border border-border bg-background/60 p-3">
+              <dt className="text-sm text-muted">Abono</dt>
+              <dd className="font-semibold text-foreground">DOP {repair.deposit_amount ?? "0.00"}</dd>
+            </div>
+          ) : null}
           <div className="rounded-md border border-border bg-background/60 p-3">
             <dt className="text-sm text-muted">Factura</dt>
             <dd className="font-semibold text-foreground">{repair.invoice_number ?? "Sin factura"}</dd>
@@ -96,6 +111,10 @@ export function RepairDetail({ id }: { id: number }) {
             <dt className="text-sm text-muted">Telefono</dt>
             <dd className="font-semibold text-foreground">{repair.customer_phone ?? "Sin telefono"}</dd>
           </div>
+          <div className="rounded-md border border-border bg-background/60 p-3">
+            <dt className="text-sm text-muted">Salida</dt>
+            <dd className="font-semibold text-foreground">{repair.exit_date ?? "Pendiente"}</dd>
+          </div>
         </dl>
         {repair.customer_name ? <p className="mt-4 text-sm text-muted">Cliente: {repair.customer_name}</p> : null}
         {repair.watch_color ? <p className="mt-2 text-sm text-muted">Color del reloj: {repair.watch_color}</p> : null}
@@ -106,29 +125,27 @@ export function RepairDetail({ id }: { id: number }) {
           </div>
         ) : null}
         <p className="mt-4 whitespace-pre-line text-sm text-foreground">{repair.description}</p>
-        {repair.notes ? <p className="mt-3 whitespace-pre-line text-sm text-muted">{repair.notes}</p> : null}
-        {repair.envelope_raw_transcription ? (
+        {canManage && repair.notes ? <p className="mt-3 whitespace-pre-line text-sm text-muted">{repair.notes}</p> : null}
+        {canManage && repair.envelope_raw_transcription ? (
           <details className="mt-4 rounded-md border border-border bg-background/60 p-3 text-sm text-muted">
             <summary className="cursor-pointer font-medium text-foreground">Transcripcion del sobre</summary>
             <p className="mt-2 whitespace-pre-line break-words">{repair.envelope_raw_transcription}</p>
           </details>
         ) : null}
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          {repair.status === "diagnosis" ? (
+          {canManage ? (
             <Link
               href={`/repairs/${repair.id}/edit`}
               className="focus-ring rounded-md bg-gold px-4 py-2 text-center font-semibold text-background"
             >
               Editar
             </Link>
-          ) : (
-            <span className="rounded-md border border-border px-4 py-2 text-center text-sm text-muted">
-              Solo se puede editar en diagnostico
-            </span>
-          )}
-          <button type="button" onClick={remove} className="focus-ring rounded-md border border-border px-4 py-2 text-muted">
-            Eliminar
-          </button>
+          ) : null}
+          {canManage ? (
+            <button type="button" onClick={remove} className="focus-ring rounded-md border border-border px-4 py-2 text-muted">
+              Eliminar
+            </button>
+          ) : null}
         </div>
       </div>
 

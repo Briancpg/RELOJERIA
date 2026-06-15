@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_admin_or_master
 from app.db.session import get_db
 from app.schemas.clients import ClientListResponse
 from app.services.clients_service import ClientsService
 
-router = APIRouter(prefix="/clients", tags=["clients"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/clients", tags=["clients"], dependencies=[Depends(require_admin_or_master)])
 
 
 @router.get("", response_model=ClientListResponse)

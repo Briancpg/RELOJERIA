@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
@@ -12,6 +13,13 @@ from app.schemas.repair import RepairUpdate
 from app.services.repair_service import RepairService, calculate_profit
 
 
+@dataclass
+class FakeUser:
+    id: int = 10
+    role: str = "admin"
+    is_admin: bool = True
+
+
 class FakeRepairRepository:
     def __init__(self, repair: Repair) -> None:
         self.repair = repair
@@ -22,16 +30,17 @@ class FakeRepairRepository:
 
     def update(self, repair: Repair, data: RepairUpdate, profit_amount=None) -> Repair:
         self.updated_payload = data
-        if data.status is not None:
-            repair.status = data.status
+        for key, value in data.model_dump(exclude_unset=True).items():
+            setattr(repair, key, value)
         if profit_amount is not None:
             repair.profit_amount = profit_amount
         return repair
 
 
-def make_repair(status: RepairStatus) -> Repair:
+def make_repair(status: RepairStatus, created_by_user_id: int | None = 10) -> Repair:
     return Repair(
         id=1,
+        created_by_user_id=created_by_user_id,
         repair_date=date(2026, 5, 22),
         brand="Seiko",
         model="5",
@@ -45,9 +54,10 @@ def make_repair(status: RepairStatus) -> Repair:
     )
 
 
-def make_service(repair: Repair) -> RepairService:
+def make_service(repair: Repair, user: FakeUser | None = None) -> RepairService:
     service = RepairService.__new__(RepairService)
     service.repairs = FakeRepairRepository(repair)
+    service.current_user = user or FakeUser()
     return service
 
 
@@ -64,6 +74,7 @@ def test_week_bounds_are_monday_to_sunday():
 
 def test_dashboard_profit_status_groups():
     assert REALIZED_PROFIT_STATUSES == (RepairStatus.delivered,)
+    assert RepairStatus.received in FLOATING_PROFIT_STATUSES
     assert RepairStatus.diagnosis in FLOATING_PROFIT_STATUSES
     assert RepairStatus.in_repair in FLOATING_PROFIT_STATUSES
     assert RepairStatus.waiting_parts in FLOATING_PROFIT_STATUSES
@@ -74,6 +85,7 @@ def test_dashboard_profit_status_groups():
 
 def test_repair_workflow_statuses_are_allowed():
     assert tuple(status.value for status in RepairStatus) == (
+        "received",
         "diagnosis",
         "in_repair",
         "waiting_parts",
@@ -85,16 +97,34 @@ def test_repair_workflow_statuses_are_allowed():
     assert not hasattr(RepairStatus, "completed")
 
 
-def test_non_diagnosis_repair_rejects_field_edits():
+def test_admin_can_edit_active_repair_fields():
     service = make_service(make_repair(RepairStatus.in_repair))
 
-    with pytest.raises(AppError, match="diagnostico"):
-        service.update(1, RepairUpdate(brand="Citizen"))
+    updated = service.update(1, RepairUpdate(brand="Citizen"))
+
+    assert updated.brand == "Citizen"
 
 
-def test_non_diagnosis_repair_allows_status_change_only():
+def test_delivered_repair_sets_exit_date_when_empty():
     service = make_service(make_repair(RepairStatus.in_repair))
 
     updated = service.update(1, RepairUpdate(status=RepairStatus.delivered))
 
     assert updated.status == RepairStatus.delivered
+    assert updated.exit_date == date.today()
+
+
+def test_jewelry_user_cannot_update_repairs():
+    jewelry_user = FakeUser(id=20, role="joyeria", is_admin=True)
+    service = make_service(make_repair(RepairStatus.received, created_by_user_id=20), jewelry_user)
+
+    with pytest.raises(AppError, match="Admin or master"):
+        service.update(1, RepairUpdate(brand="Citizen"))
+
+
+def test_jewelry_user_cannot_access_other_users_repair():
+    jewelry_user = FakeUser(id=20, role="joyeria", is_admin=False)
+    service = make_service(make_repair(RepairStatus.received, created_by_user_id=99), jewelry_user)
+
+    with pytest.raises(AppError, match="Repair not found"):
+        service.get_or_raise(1)

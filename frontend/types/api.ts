@@ -1,5 +1,13 @@
-export type RepairStatus = "diagnosis" | "in_repair" | "waiting_parts" | "ready" | "delivered" | "cancelled";
+export type RepairStatus =
+  | "received"
+  | "diagnosis"
+  | "in_repair"
+  | "waiting_parts"
+  | "ready"
+  | "delivered"
+  | "cancelled";
 export type RepairImageType = "watch" | "envelope";
+export type UserRole = "admin" | "maestro" | "joyeria";
 
 export type TokenResponse = {
   access_token: string;
@@ -10,6 +18,7 @@ export type TokenResponse = {
 export type User = {
   id: number;
   email: string;
+  role: UserRole;
   is_active: boolean;
   is_admin: boolean;
   created_at: string;
@@ -28,7 +37,9 @@ export type RepairImage = {
 
 export type Repair = {
   id: number;
+  created_by_user_id: number | null;
   repair_date: string;
+  exit_date: string | null;
   envelope_date: string | null;
   envelope_raw_transcription: string | null;
   brand: string;
@@ -37,9 +48,10 @@ export type Repair = {
   watch_specifications: string | null;
   description: string;
   repair_cost: string;
+  internal_cost: string | null;
   deposit_amount: string | null;
-  watchmaker_percentage: string;
-  profit_amount: string;
+  watchmaker_percentage: string | null;
+  profit_amount: string | null;
   status: RepairStatus;
   customer_name: string | null;
   customer_phone: string | null;
@@ -53,6 +65,7 @@ export type Repair = {
 
 export type RepairPayload = {
   repair_date: string;
+  exit_date?: string | null;
   envelope_date?: string | null;
   envelope_raw_transcription?: string | null;
   brand: string;
@@ -61,6 +74,7 @@ export type RepairPayload = {
   watch_specifications?: string | null;
   description: string;
   repair_cost: string;
+  internal_cost?: string | null;
   deposit_amount?: string | null;
   watchmaker_percentage: string;
   status: RepairStatus;
@@ -90,6 +104,16 @@ export type DashboardSummary = {
   pending_repairs: number;
   delivered_repairs: number;
   accumulated_profit: string;
+  active_repairs: number;
+  ready_repairs: number;
+  delivered_weekly: number;
+};
+
+export type JewelryDashboardSummary = {
+  sent_repairs: number;
+  in_process_repairs: number;
+  ready_repairs: number;
+  delivered_repairs: number;
 };
 
 export type StatusCount = {

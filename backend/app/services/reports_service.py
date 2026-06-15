@@ -10,6 +10,7 @@ from app.services.inventory_service import InventoryService
 
 
 STATUS_SORT_ORDER = (
+    RepairStatus.received,
     RepairStatus.diagnosis,
     RepairStatus.in_repair,
     RepairStatus.waiting_parts,
@@ -38,6 +39,7 @@ class ReportsService:
 
     def summary(self) -> ReportsSummary:
         active_statuses = (
+            RepairStatus.received,
             RepairStatus.diagnosis,
             RepairStatus.in_repair,
             RepairStatus.waiting_parts,
@@ -83,6 +85,7 @@ class ReportsService:
             total_repairs=int(total_repairs),
             total_estimated_revenue=self._sum_repair_cost(
                 (
+                    RepairStatus.received,
                     RepairStatus.diagnosis,
                     RepairStatus.in_repair,
                     RepairStatus.waiting_parts,

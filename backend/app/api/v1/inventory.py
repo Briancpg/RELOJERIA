@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_admin_or_master
 from app.db.session import get_db
 from app.schemas.inventory import (
     InventoryItemCreate,
@@ -13,7 +13,7 @@ from app.schemas.inventory import (
 )
 from app.services.inventory_service import InventoryService
 
-router = APIRouter(prefix="/inventory", tags=["inventory"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/inventory", tags=["inventory"], dependencies=[Depends(require_admin_or_master)])
 
 
 @router.get("", response_model=InventoryListResponse)

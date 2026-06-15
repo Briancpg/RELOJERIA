@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Banknote, CalendarDays, Eye, Pencil, Search, Trash2 } from "lucide-react";
-import { deleteRepair, listRepairs, updateRepair, type RepairFilters } from "@/lib/api";
-import type { Repair, RepairStatus } from "@/types/api";
+import { deleteRepair, listRepairs, me, updateRepair, type RepairFilters } from "@/lib/api";
+import type { Repair, RepairStatus, UserRole } from "@/types/api";
 import { StatusBadge, statusLabels } from "@/components/StatusBadge";
 
 const statuses = Object.keys(statusLabels) as RepairStatus[];
+const activeStatuses: RepairStatus[] = ["received", "diagnosis", "in_repair", "waiting_parts", "ready"];
 
 function profitLabel(status: RepairStatus) {
   if (status === "delivered") return "Ganancia";
@@ -29,6 +30,14 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
   const [error, setError] = useState("");
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const canManage = role === "admin" || role === "maestro";
+
+  useEffect(() => {
+    me()
+      .then((user) => setRole(user.role))
+      .catch(() => setRole(null));
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -72,23 +81,28 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
   }
 
   const visibleFloating = repairs
-    .filter((repair) =>
-      ["diagnosis", "in_repair", "waiting_parts", "ready"].includes(repair.status)
-    )
-    .reduce((total, repair) => total + Number(repair.profit_amount), 0);
+    .filter((repair) => activeStatuses.includes(repair.status))
+    .reduce((total, repair) => total + Number(repair.profit_amount ?? 0), 0);
   const visibleDelivered = repairs
     .filter((repair) => repair.status === "delivered")
-    .reduce((total, repair) => total + Number(repair.profit_amount), 0);
-  const visibleActive = repairs.filter((repair) =>
-    ["diagnosis", "in_repair", "waiting_parts", "ready"].includes(repair.status)
-  ).length;
+    .reduce((total, repair) => total + Number(repair.profit_amount ?? 0), 0);
+  const visibleActive = repairs.filter((repair) => activeStatuses.includes(repair.status)).length;
+  const visibleReady = repairs.filter((repair) => repair.status === "ready").length;
+  const visibleDeliveredCount = repairs.filter((repair) => repair.status === "delivered").length;
 
-  const summaryCards = [
-    { label: "Ordenes visibles", value: String(totalRepairs), helper: `${repairs.length} en pantalla` },
-    { label: "Activas", value: String(visibleActive), helper: "Diagnostico, reparacion, piezas o listo" },
-    { label: "Flotante visible", value: `DOP ${visibleFloating.toFixed(2)}`, helper: "Potencial por entregar" },
-    { label: "Entregado visible", value: `DOP ${visibleDelivered.toFixed(2)}`, helper: "Ganancia realizada" }
-  ];
+  const summaryCards = canManage
+    ? [
+        { label: "Ordenes visibles", value: String(totalRepairs), helper: `${repairs.length} en pantalla` },
+        { label: "Activas", value: String(visibleActive), helper: "Recibido, diagnostico, reparacion, piezas o listo" },
+        { label: "Flotante visible", value: `DOP ${visibleFloating.toFixed(2)}`, helper: "Potencial por entregar" },
+        { label: "Entregado visible", value: `DOP ${visibleDelivered.toFixed(2)}`, helper: "Ganancia realizada" }
+      ]
+    : [
+        { label: "Mis ordenes", value: String(totalRepairs), helper: `${repairs.length} en pantalla` },
+        { label: "En proceso", value: String(visibleActive), helper: "Recibido, diagnostico o reparacion" },
+        { label: "Listas", value: String(visibleReady), helper: "Pendientes de entrega" },
+        { label: "Entregadas", value: String(visibleDeliveredCount), helper: "Historial propio" }
+      ];
 
   function statusChipClass(status: RepairStatus | "") {
     const active = (filters.status ?? "") === status;
@@ -128,7 +142,7 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
                   setSearch(value);
                   setFilters((current) => ({ ...current, search: value.trim() || undefined }));
                 }}
-                placeholder="Cliente, marca, modelo, cedula o factura"
+                placeholder="Cliente, telefono, marca, modelo, cedula, factura o estado"
                 className="field-control w-full pl-9"
               />
             </div>
@@ -156,7 +170,7 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
           <span>Reloj / trabajo</span>
           <span>Estado</span>
           <span>Entrada</span>
-          <span>Ganancia</span>
+          <span>{canManage ? "Ganancia" : "Salida"}</span>
           <span />
         </div>
 
@@ -184,22 +198,26 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
 
             <div className="mb-3 flex items-center gap-2 lg:mb-0 lg:block">
               <StatusBadge status={repair.status} />
-              <label className="sr-only" htmlFor={`status-${repair.id}`}>
-                Cambiar estado
-              </label>
-              <select
-                id={`status-${repair.id}`}
-                value={repair.status}
-                disabled={updatingStatusId === repair.id}
-                onChange={(event) => changeStatus(repair, event.target.value as RepairStatus)}
-                className="focus-ring mt-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground disabled:opacity-60 lg:mt-2 lg:w-full"
-              >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {statusLabels[status]}
-                  </option>
-                ))}
-              </select>
+              {canManage ? (
+                <>
+                  <label className="sr-only" htmlFor={`status-${repair.id}`}>
+                    Cambiar estado
+                  </label>
+                  <select
+                    id={`status-${repair.id}`}
+                    value={repair.status}
+                    disabled={updatingStatusId === repair.id}
+                    onChange={(event) => changeStatus(repair, event.target.value as RepairStatus)}
+                    className="focus-ring mt-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground disabled:opacity-60 lg:mt-2 lg:w-full"
+                  >
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>
+                        {statusLabels[status]}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              ) : null}
             </div>
 
             <div className="mb-3 flex items-center gap-2 text-sm text-muted lg:mb-0">
@@ -208,8 +226,18 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
             </div>
 
             <div className="mb-3 flex items-center gap-2 font-semibold text-foreground lg:mb-0">
-              <Banknote className="h-4 w-4 text-gold" aria-hidden="true" />
-              <span>{updatingStatusId === repair.id ? "Actualizando..." : `${profitLabel(repair.status)}: DOP ${repair.profit_amount}`}</span>
+              {canManage ? (
+                <>
+                  <Banknote className="h-4 w-4 text-gold" aria-hidden="true" />
+                  <span>
+                    {updatingStatusId === repair.id
+                      ? "Actualizando..."
+                      : `${profitLabel(repair.status)}: DOP ${repair.profit_amount ?? "0.00"}`}
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm text-muted">{repair.exit_date ?? "Pendiente"}</span>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2 lg:justify-end">
@@ -220,7 +248,7 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
                 <Eye className="h-4 w-4" aria-hidden="true" />
                 Ver
               </Link>
-              {repair.status === "diagnosis" ? (
+              {canManage ? (
                 <Link
                   href={`/repairs/${repair.id}/edit`}
                   className="focus-ring inline-flex items-center gap-2 rounded-md bg-gold px-3 py-2 text-sm font-semibold text-background"
@@ -229,7 +257,7 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
                   Editar
                 </Link>
               ) : null}
-              {repair.status === "cancelled" ? (
+              {canManage && repair.status === "cancelled" ? (
                 <button
                   type="button"
                   disabled={deletingId === repair.id}

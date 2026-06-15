@@ -10,6 +10,7 @@ import type {
   InventoryPayload,
   InventoryStatus,
   InventorySummary,
+  JewelryDashboardSummary,
   Repair,
   RepairImage,
   RepairImageType,
@@ -100,6 +101,10 @@ export function me() {
 
 export function getDashboardSummary() {
   return request<DashboardSummary>("/dashboard/summary");
+}
+
+export function getMyDashboardSummary() {
+  return request<JewelryDashboardSummary>("/dashboard/my-summary");
 }
 
 export function getRepairsByStatus() {

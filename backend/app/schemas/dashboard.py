@@ -16,6 +16,16 @@ class DashboardSummary(BaseModel):
     pending_repairs: int
     delivered_repairs: int
     accumulated_profit: Decimal
+    active_repairs: int
+    ready_repairs: int
+    delivered_weekly: int
+
+
+class JewelryDashboardSummary(BaseModel):
+    sent_repairs: int
+    in_process_repairs: int
+    ready_repairs: int
+    delivered_repairs: int
 
 
 class StatusCount(BaseModel):

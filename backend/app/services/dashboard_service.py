@@ -7,16 +7,24 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.repair import Repair, RepairStatus
-from app.schemas.dashboard import DashboardSummary, StatusCount, WeeklyProfit
+from app.schemas.dashboard import DashboardSummary, JewelryDashboardSummary, StatusCount, WeeklyProfit
 
 REALIZED_PROFIT_STATUSES = (RepairStatus.delivered,)
+ACTIVE_REPAIR_STATUSES = (
+    RepairStatus.received,
+    RepairStatus.diagnosis,
+    RepairStatus.in_repair,
+    RepairStatus.waiting_parts,
+)
 FLOATING_PROFIT_STATUSES = (
+    RepairStatus.received,
     RepairStatus.diagnosis,
     RepairStatus.in_repair,
     RepairStatus.waiting_parts,
     RepairStatus.ready,
 )
 STATUS_SORT_ORDER = (
+    RepairStatus.received,
     RepairStatus.diagnosis,
     RepairStatus.in_repair,
     RepairStatus.waiting_parts,
@@ -56,10 +64,11 @@ class DashboardService:
         statement = select(func.coalesce(func.sum(Repair.profit_amount), 0)).where(Repair.deleted_at.is_(None))
         if statuses:
             statement = statement.where(Repair.status.in_(statuses))
+        date_field = func.coalesce(Repair.exit_date, Repair.repair_date) if statuses == REALIZED_PROFIT_STATUSES else Repair.repair_date
         if start:
-            statement = statement.where(Repair.repair_date >= start)
+            statement = statement.where(date_field >= start)
         if end:
-            statement = statement.where(Repair.repair_date <= end)
+            statement = statement.where(date_field <= end)
         return Decimal(str(self.db.scalar(statement) or 0))
 
     def _count_status(self, status: RepairStatus) -> int:
@@ -67,6 +76,27 @@ class DashboardService:
             Repair.deleted_at.is_(None),
             Repair.status == status,
         )
+        return int(self.db.scalar(statement) or 0)
+
+    def _count_statuses(self, statuses: tuple[RepairStatus, ...], owner_user_id: int | None = None) -> int:
+        statement = select(func.count()).select_from(Repair).where(
+            Repair.deleted_at.is_(None),
+            Repair.status.in_(statuses),
+        )
+        if owner_user_id is not None:
+            statement = statement.where(Repair.created_by_user_id == owner_user_id)
+        return int(self.db.scalar(statement) or 0)
+
+    def _count_delivered_between(self, start: date, end: date, owner_user_id: int | None = None) -> int:
+        delivered_at = func.coalesce(Repair.exit_date, Repair.repair_date)
+        statement = select(func.count()).select_from(Repair).where(
+            Repair.deleted_at.is_(None),
+            Repair.status == RepairStatus.delivered,
+            delivered_at >= start,
+            delivered_at <= end,
+        )
+        if owner_user_id is not None:
+            statement = statement.where(Repair.created_by_user_id == owner_user_id)
         return int(self.db.scalar(statement) or 0)
 
     def summary(self) -> DashboardSummary:
@@ -82,9 +112,20 @@ class DashboardService:
             floating_weekly=self._profit_between(week_start, week_end, FLOATING_PROFIT_STATUSES),
             floating_monthly=self._profit_between(month_start, today, FLOATING_PROFIT_STATUSES),
             floating_profit=self._profit_between(statuses=FLOATING_PROFIT_STATUSES),
-            pending_repairs=self._count_status(RepairStatus.diagnosis),
+            pending_repairs=self._count_statuses((RepairStatus.received, RepairStatus.diagnosis)),
             delivered_repairs=self._count_status(RepairStatus.delivered),
             accumulated_profit=self._profit_between(),
+            active_repairs=self._count_statuses(ACTIVE_REPAIR_STATUSES),
+            ready_repairs=self._count_status(RepairStatus.ready),
+            delivered_weekly=self._count_delivered_between(week_start, week_end),
+        )
+
+    def jewelry_summary(self, user_id: int) -> JewelryDashboardSummary:
+        return JewelryDashboardSummary(
+            sent_repairs=self._count_statuses(tuple(RepairStatus), owner_user_id=user_id),
+            in_process_repairs=self._count_statuses(ACTIVE_REPAIR_STATUSES, owner_user_id=user_id),
+            ready_repairs=self._count_statuses((RepairStatus.ready,), owner_user_id=user_id),
+            delivered_repairs=self._count_statuses((RepairStatus.delivered,), owner_user_id=user_id),
         )
 
     def repairs_by_status(self) -> list[StatusCount]:

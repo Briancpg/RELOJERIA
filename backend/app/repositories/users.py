@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.user import User
+from app.models.user import User, UserRole
 
 
 class UserRepository:
@@ -13,9 +13,8 @@ class UserRepository:
         return self.db.scalar(statement)
 
     def create_admin(self, email: str, hashed_password: str) -> User:
-        user = User(email=email, hashed_password=hashed_password, is_active=True, is_admin=True)
+        user = User(email=email, hashed_password=hashed_password, role=UserRole.admin, is_active=True, is_admin=True)
         self.db.add(user)
         self.db.commit()
         self.db.refresh(user)
         return user
-
