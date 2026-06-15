@@ -48,6 +48,10 @@ docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml logs 
 
 Desde la maquina local, con acceso SSH al VPS, se puede automatizar la copia y arranque:
 
+```powershell
+.\scripts\deploy-api-vps.ps1 -DeployHost 3.141.226.132 -DeployUser ubuntu -DeployEnv production -EnvFile .env.production
+```
+
 ```bash
 DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu DEPLOY_ENV=production ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
 ```

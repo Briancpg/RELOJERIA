@@ -59,17 +59,29 @@ develop -> staging.tutallerrelojero.com
 
 Instalar el router Nginx:
 
+```powershell
+.\scripts\install-vps-nginx-router.ps1 -DeployHost 3.141.226.132 -DeployUser ubuntu
+```
+
 ```bash
 DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu sh scripts/install-vps-nginx-router.sh
 ```
 
 Desplegar production:
 
+```powershell
+.\scripts\deploy-api-vps.ps1 -DeployHost 3.141.226.132 -DeployUser ubuntu -DeployEnv production -EnvFile .env.production
+```
+
 ```bash
 DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu DEPLOY_ENV=production ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
 ```
 
 Desplegar staging:
+
+```powershell
+.\scripts\deploy-api-vps.ps1 -DeployHost 3.141.226.132 -DeployUser ubuntu -DeployEnv staging -EnvFile .env.staging
+```
 
 ```bash
 DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu DEPLOY_ENV=staging ENV_FILE=.env.staging sh scripts/deploy-api-vps.sh

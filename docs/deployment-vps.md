@@ -48,6 +48,10 @@ docker compose --env-file .env -p relojeria-prod -f docker-compose.vps.yml logs 
 
 Tambien puedes hacerlo desde tu maquina local con el script incluido. Crea primero `.env.production` local usando `infra/env.production.example` como base. Ese archivo esta ignorado por Git.
 
+```powershell
+.\scripts\deploy-api-vps.ps1 -DeployHost 3.141.226.132 -DeployUser ubuntu -DeployEnv production -EnvFile .env.production
+```
+
 ```bash
 DEPLOY_HOST=3.141.226.132 DEPLOY_USER=ubuntu DEPLOY_ENV=production ENV_FILE=.env.production sh scripts/deploy-api-vps.sh
 ```
