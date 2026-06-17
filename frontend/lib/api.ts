@@ -85,6 +85,33 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return response.json() as Promise<T>;
 }
 
+async function requestBlob(path: string, options: RequestOptions = {}): Promise<Blob> {
+  const headers = new Headers(options.headers);
+  if (options.auth !== false) {
+    const token = getAccessToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    if (response.status === 401) {
+      clearTokens();
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.assign("/login");
+      }
+      throw new Error("Sesion expirada. Vuelve a iniciar sesion.");
+    }
+    throw new Error(formatApiError(body?.detail));
+  }
+
+  return response.blob();
+}
+
 export async function login(email: string, password: string) {
   const tokens = await request<TokenResponse>("/auth/login", {
     method: "POST",
@@ -164,6 +191,7 @@ export function getReportsSummary() {
 export type RepairFilters = {
   search?: string;
   status?: RepairStatus | "";
+  status_group?: string;
   date_from?: string;
   date_to?: string;
   page?: number;
@@ -209,6 +237,10 @@ export function uploadRepairImage(id: number, file: File, imageType: RepairImage
     method: "POST",
     body: formData
   });
+}
+
+export function getRepairImageBlob(repairId: number, imageId: number) {
+  return requestBlob(`/repairs/${repairId}/images/${imageId}/content`);
 }
 
 export function extractEnvelope(file: File) {

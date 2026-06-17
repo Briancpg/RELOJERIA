@@ -8,6 +8,7 @@ export type RepairStatus =
   | "cancelled";
 export type RepairImageType = "watch" | "envelope";
 export type UserRole = "admin" | "maestro" | "joyeria";
+export type RepairStatusGroup = "active" | "in_process" | "ready" | "delivered" | "cancelled";
 
 export type TokenResponse = {
   access_token: string;

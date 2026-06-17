@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { deleteRepair, getRepair, me } from "@/lib/api";
+import { deleteRepair, getRepair, getRepairImageBlob, me } from "@/lib/api";
 import type { Repair, RepairImage, UserRole } from "@/types/api";
 import { ImageUploader } from "@/components/ImageUploader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -16,6 +16,72 @@ function profitLabel(status: Repair["status"]) {
 
 function imageTypeLabel(image: RepairImage) {
   return image.image_type === "envelope" ? "Sobre de reparacion" : "Foto del reloj";
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function RepairImageCard({ image }: { image: RepairImage }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(image.public_url);
+  const [loadingPreview, setLoadingPreview] = useState(!image.public_url);
+  const [previewError, setPreviewError] = useState("");
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    let cancelled = false;
+
+    if (image.public_url) {
+      setPreviewUrl(image.public_url);
+      setLoadingPreview(false);
+      setPreviewError("");
+      return;
+    }
+
+    setLoadingPreview(true);
+    setPreviewError("");
+    getRepairImageBlob(image.repair_id, image.id)
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewUrl(objectUrl);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setPreviewError(err instanceof Error ? err.message : "No se pudo mostrar la imagen");
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPreview(false);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [image.id, image.public_url, image.repair_id]);
+
+  return (
+    <article className="overflow-hidden rounded-lg border border-border bg-card text-sm text-muted shadow-sm">
+      {previewUrl ? (
+        <a href={previewUrl} target="_blank" rel="noreferrer" className="block">
+          <img src={previewUrl} alt={image.file_name} className="aspect-video w-full bg-background/60 object-cover" />
+        </a>
+      ) : (
+        <div className="flex aspect-video items-center justify-center bg-background/60 px-4 text-center text-sm text-muted">
+          {loadingPreview ? "Cargando imagen..." : previewError || "Imagen no disponible para previsualizar"}
+        </div>
+      )}
+      <div className="space-y-1 p-3">
+        <p className="font-semibold text-foreground">{imageTypeLabel(image)}</p>
+        <p className="truncate">{image.file_name}</p>
+        <p className="text-xs text-muted">
+          {image.content_type} · {formatFileSize(image.file_size)}
+        </p>
+      </div>
+    </article>
+  );
 }
 
 export function RepairDetail({ id }: { id: number }) {
@@ -149,24 +215,28 @@ export function RepairDetail({ id }: { id: number }) {
         </div>
       </div>
 
-      <ImageUploader repairId={repair.id} onUploaded={addImage} />
-
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {repair.images.map((image) => (
-          <a
-            key={image.id}
-            href={image.public_url ?? "#"}
-            target="_blank"
-            className="rounded-lg border border-border bg-card p-3 text-sm text-muted"
-          >
-            {image.public_url ? (
-              <img src={image.public_url} alt={image.file_name} className="mb-2 aspect-video w-full rounded-md object-cover" />
-            ) : null}
-            <span className="block font-medium text-foreground">{imageTypeLabel(image)}</span>
-            <span className="block truncate">{image.file_name}</span>
-          </a>
-        ))}
+      <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-foreground">Imagenes de la reparacion</h2>
+            <p className="text-sm text-muted">Fotos del reloj y sobre guardadas para este trabajo.</p>
+          </div>
+          <span className="text-sm text-muted">{repair.images.length} imagen(es)</span>
+        </div>
+        {repair.images.length ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {repair.images.map((image) => (
+              <RepairImageCard key={image.id} image={image} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 rounded-md border border-border bg-background/60 px-3 py-4 text-sm text-muted">
+            Esta reparacion todavia no tiene imagenes guardadas.
+          </p>
+        )}
       </section>
+
+      <ImageUploader repairId={repair.id} onUploaded={addImage} />
     </div>
   );
 }

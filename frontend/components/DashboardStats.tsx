@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Banknote, CheckCircle2, Clock3, PackageCheck, TrendingUp, WalletCards } from "lucide-react";
@@ -48,17 +49,21 @@ export function DashboardStats() {
   if (role === "joyeria") {
     if (!mySummary) return <p className="text-sm text-muted">Cargando dashboard...</p>;
     const jewelryCards = [
-      { label: "Mis ordenes", value: String(mySummary.sent_repairs), icon: WalletCards },
-      { label: "En proceso", value: String(mySummary.in_process_repairs), icon: Clock3 },
-      { label: "Listas", value: String(mySummary.ready_repairs), icon: PackageCheck },
-      { label: "Entregadas", value: String(mySummary.delivered_repairs), icon: CheckCircle2 }
+      { label: "Mis ordenes", value: String(mySummary.sent_repairs), icon: WalletCards, href: "/repairs" },
+      { label: "En proceso", value: String(mySummary.in_process_repairs), icon: Clock3, href: "/repairs?status_group=in_process" },
+      { label: "Listas", value: String(mySummary.ready_repairs), icon: PackageCheck, href: "/repairs?status_group=ready" },
+      { label: "Entregadas", value: String(mySummary.delivered_repairs), icon: CheckCircle2, href: "/repairs?status_group=delivered" }
     ];
     return (
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {jewelryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="rounded-lg border border-border bg-card p-4 shadow-sm">
+            <Link
+              key={card.label}
+              href={card.href}
+              className="focus-ring rounded-lg border border-border bg-card p-4 text-left shadow-sm transition hover:border-gold/40 hover:bg-gold/10"
+            >
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm uppercase tracking-[0.12em] text-muted">{card.label}</p>
                 <span className="rounded-md bg-gold/10 p-2 text-gold">
@@ -66,7 +71,7 @@ export function DashboardStats() {
                 </span>
               </div>
               <p className="mt-3 text-2xl font-semibold text-foreground">{card.value}</p>
-            </div>
+            </Link>
           );
         })}
       </section>
@@ -75,12 +80,12 @@ export function DashboardStats() {
   if (!summary) return <p className="text-sm text-muted">Cargando dashboard...</p>;
 
   const cards = [
-    { label: "Activas", value: String(summary.active_repairs), icon: Clock3 },
-    { label: "Listas para entregar", value: String(summary.ready_repairs), icon: PackageCheck },
-    { label: "Entregadas esta semana", value: String(summary.delivered_weekly), icon: CheckCircle2 },
-    { label: "Ganancia semanal", value: money(summary.total_weekly, summary.currency), icon: TrendingUp },
-    { label: "Flotante por entregar", value: money(summary.floating_profit, summary.currency), icon: WalletCards },
-    { label: "Ganancia mensual", value: money(summary.total_monthly, summary.currency), icon: Banknote }
+    { label: "Activas", value: String(summary.active_repairs), icon: Clock3, href: "/repairs?status_group=active" },
+    { label: "Listas para entregar", value: String(summary.ready_repairs), icon: PackageCheck, href: "/repairs?status_group=ready" },
+    { label: "Entregadas esta semana", value: String(summary.delivered_weekly), icon: CheckCircle2, href: "/repairs?status_group=delivered" },
+    { label: "Ganancia semanal", value: money(summary.total_weekly, summary.currency), icon: TrendingUp, href: "/repairs?status_group=delivered" },
+    { label: "Flotante por entregar", value: money(summary.floating_profit, summary.currency), icon: WalletCards, href: "/repairs?status_group=active" },
+    { label: "Ganancia mensual", value: money(summary.total_monthly, summary.currency), icon: Banknote, href: "/repairs?status_group=delivered" }
   ];
 
   async function openStatus(item: StatusCount) {
@@ -109,7 +114,11 @@ export function DashboardStats() {
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-          <div key={card.label} className="rounded-lg border border-border bg-card p-4 shadow-sm">
+          <Link
+            key={card.label}
+            href={card.href}
+            className="focus-ring rounded-lg border border-border bg-card p-4 text-left shadow-sm transition hover:border-gold/40 hover:bg-gold/10"
+          >
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm uppercase tracking-[0.12em] text-muted">{card.label}</p>
               <span className="rounded-md bg-gold/10 p-2 text-gold">
@@ -117,7 +126,7 @@ export function DashboardStats() {
               </span>
             </div>
             <p className="mt-3 text-2xl font-semibold text-foreground">{card.value}</p>
-          </div>
+          </Link>
           );
         })}
       </section>

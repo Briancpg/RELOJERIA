@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Banknote, CalendarDays, Eye, Pencil, Search, Trash2 } from "lucide-react";
 import { deleteRepair, listRepairs, me, updateRepair, type RepairFilters } from "@/lib/api";
-import type { Repair, RepairStatus, UserRole } from "@/types/api";
+import type { Repair, RepairStatus, RepairStatusGroup, UserRole } from "@/types/api";
 import { StatusBadge, statusLabels } from "@/components/StatusBadge";
 
 const statuses = Object.keys(statusLabels) as RepairStatus[];
+const statusGroups: RepairStatusGroup[] = ["active", "in_process", "ready", "delivered", "cancelled"];
 const activeStatuses: RepairStatus[] = ["received", "diagnosis", "in_repair", "waiting_parts", "ready"];
 
 function profitLabel(status: RepairStatus) {
@@ -16,12 +17,21 @@ function profitLabel(status: RepairStatus) {
   return "Flotante";
 }
 
-export function RepairList({ initialStatus = "", initialSearch = "" }: { initialStatus?: string; initialSearch?: string }) {
+export function RepairList({
+  initialStatus = "",
+  initialStatusGroup = "",
+  initialSearch = ""
+}: {
+  initialStatus?: string;
+  initialStatusGroup?: string;
+  initialSearch?: string;
+}) {
   const [repairs, setRepairs] = useState<Repair[]>([]);
   const [totalRepairs, setTotalRepairs] = useState(0);
   const [filters, setFilters] = useState<RepairFilters>(
     {
       ...(statuses.includes(initialStatus as RepairStatus) ? { status: initialStatus as RepairStatus } : {}),
+      ...(statusGroups.includes(initialStatusGroup as RepairStatusGroup) ? { status_group: initialStatusGroup } : {}),
       ...(initialSearch ? { search: initialSearch } : {})
     }
   );
@@ -105,7 +115,7 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
       ];
 
   function statusChipClass(status: RepairStatus | "") {
-    const active = (filters.status ?? "") === status;
+    const active = !filters.status_group && (filters.status ?? "") === status;
     return `focus-ring rounded-full border px-3 py-2 text-sm font-semibold transition ${
       active
         ? "border-gold/40 bg-gold/15 text-gold"
@@ -114,7 +124,7 @@ export function RepairList({ initialStatus = "", initialSearch = "" }: { initial
   }
 
   function setStatusFilter(status: RepairStatus | "") {
-    setFilters((current) => ({ ...current, status: status || undefined }));
+    setFilters((current) => ({ ...current, status: status || undefined, status_group: undefined }));
   }
 
   return (

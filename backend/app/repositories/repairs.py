@@ -54,6 +54,7 @@ class RepairRepository:
         brand: str | None,
         model: str | None,
         search: str | None,
+        statuses: tuple[RepairStatus, ...] | None = None,
         owner_user_id: int | None = None,
         page: int,
         page_size: int,
@@ -68,6 +69,8 @@ class RepairRepository:
             filters.append(Repair.repair_date <= date_to)
         if status:
             filters.append(Repair.status == status)
+        elif statuses:
+            filters.append(Repair.status.in_(statuses))
         if brand:
             filters.append(Repair.brand.ilike(f"%{brand.strip()}%"))
         if model:

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { RepairList } from "@/components/RepairList";
 
-export default function RepairsPage({ searchParams }: { searchParams?: { status?: string; search?: string } }) {
+export default function RepairsPage({ searchParams }: { searchParams?: { status?: string; status_group?: string; search?: string } }) {
   return (
     <AppShell
       title="Ordenes de reparacion"
@@ -13,7 +13,11 @@ export default function RepairsPage({ searchParams }: { searchParams?: { status?
         </Link>
       }
     >
-      <RepairList initialStatus={searchParams?.status ?? ""} initialSearch={searchParams?.search ?? ""} />
+      <RepairList
+        initialStatus={searchParams?.status ?? ""}
+        initialStatusGroup={searchParams?.status_group ?? ""}
+        initialSearch={searchParams?.search ?? ""}
+      />
     </AppShell>
   );
 }

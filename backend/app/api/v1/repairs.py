@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, is_jewelry_user
@@ -61,6 +62,7 @@ def list_repairs(
     date_from: date | None = None,
     date_to: date | None = None,
     status_filter: RepairStatus | None = Query(default=None, alias="status"),
+    status_group: str | None = None,
     brand: str | None = None,
     model: str | None = None,
     search: str | None = None,
@@ -78,6 +80,7 @@ def list_repairs(
         search=search,
         page=page,
         page_size=page_size,
+        status_group=status_group,
     )
     return RepairListResponse(
         items=[repair_for_user(item, current_user) for item in items],
@@ -208,6 +211,29 @@ async def upload_image(
 def list_images(repair_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     RepairService(db, current_user).get_or_raise(repair_id)
     return RepairImageRepository(db).list_for_repair(repair_id)
+
+
+@router.get("/{repair_id}/images/{image_id}/content")
+def get_image_content(
+    repair_id: int,
+    image_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    RepairService(db, current_user).get_or_raise(repair_id)
+    image = RepairImageRepository(db).get(image_id, repair_id)
+    if not image:
+        raise AppError("Image not found", status.HTTP_404_NOT_FOUND)
+    content = R2Storage().download_image(key=image.r2_key)
+    return Response(
+        content=content,
+        media_type=image.content_type,
+        headers={
+            "Cache-Control": "private, max-age=300",
+            "Content-Disposition": f'inline; filename="{image.file_name}"',
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.delete("/{repair_id}/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)

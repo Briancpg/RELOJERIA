@@ -11,6 +11,24 @@ from app.repositories.repairs import RepairRepository
 from app.schemas.repair import RepairCreate, RepairUpdate
 
 CENTS = Decimal("0.01")
+REPAIR_STATUS_GROUPS: dict[str, tuple[RepairStatus, ...]] = {
+    "active": (
+        RepairStatus.received,
+        RepairStatus.diagnosis,
+        RepairStatus.in_repair,
+        RepairStatus.waiting_parts,
+        RepairStatus.ready,
+    ),
+    "in_process": (
+        RepairStatus.received,
+        RepairStatus.diagnosis,
+        RepairStatus.in_repair,
+        RepairStatus.waiting_parts,
+    ),
+    "ready": (RepairStatus.ready,),
+    "delivered": (RepairStatus.delivered,),
+    "cancelled": (RepairStatus.cancelled,),
+}
 
 
 def calculate_profit(repair_cost: Decimal, percentage: Decimal) -> Decimal:
@@ -54,6 +72,7 @@ class RepairService:
         search: str | None,
         page: int,
         page_size: int,
+        status_group: str | None = None,
     ):
         if page < 1:
             raise AppError("page must be greater than 0")
@@ -61,6 +80,11 @@ class RepairService:
             raise AppError("page_size must be between 1 and 100")
         if date_from and date_to and date_from > date_to:
             raise AppError("date_from cannot be after date_to")
+        statuses = None
+        if status_group:
+            statuses = REPAIR_STATUS_GROUPS.get(status_group)
+            if statuses is None:
+                raise AppError("Invalid status group")
         owner_user_id = None if is_admin_or_master_user(self.current_user) else self.current_user.id
         return self.repairs.list(
             date_from=date_from,
@@ -69,6 +93,7 @@ class RepairService:
             brand=brand,
             model=model,
             search=search,
+            statuses=statuses if status is None else None,
             owner_user_id=owner_user_id,
             page=page,
             page_size=page_size,
