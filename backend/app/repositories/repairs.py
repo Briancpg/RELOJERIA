@@ -9,10 +9,18 @@ from app.schemas.repair import RepairCreate, RepairUpdate
 
 
 STATUS_SEARCH_ALIASES: dict[RepairStatus, tuple[str, ...]] = {
-    RepairStatus.received: ("received", "recibido"),
-    RepairStatus.diagnosis: ("diagnosis", "diagnostico", "diagnóstico", "en diagnostico", "en diagnóstico"),
-    RepairStatus.in_repair: ("in_repair", "reparacion", "reparación", "en reparacion", "en reparación"),
-    RepairStatus.waiting_parts: ("waiting_parts", "espera piezas", "espera de piezas", "piezas"),
+    RepairStatus.submitted: ("submitted", "enviado", "enviado por joyeria", "joyeria"),
+    RepairStatus.pending: ("pending", "pendiente", "recibido", "diagnostico", "diagnóstico"),
+    RepairStatus.in_process: (
+        "in_process",
+        "en proceso",
+        "proceso",
+        "reparacion",
+        "reparación",
+        "espera piezas",
+        "espera de piezas",
+        "piezas",
+    ),
     RepairStatus.ready: ("ready", "listo", "listo para entregar"),
     RepairStatus.delivered: ("delivered", "entregado", "entregada"),
     RepairStatus.cancelled: ("cancelled", "cancelado", "cancelada"),

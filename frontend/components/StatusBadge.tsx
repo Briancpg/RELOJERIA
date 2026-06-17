@@ -1,20 +1,18 @@
 import type { RepairStatus } from "@/types/api";
 
 const labels: Record<RepairStatus, string> = {
-  received: "Recibido",
-  diagnosis: "En diagnostico",
-  in_repair: "En reparacion",
-  waiting_parts: "Espera piezas",
+  submitted: "Enviado por joyeria",
+  pending: "Pendiente",
+  in_process: "En proceso",
   ready: "Listo para entregar",
   delivered: "Entregado",
   cancelled: "Cancelado"
 };
 
 const styles: Record<RepairStatus, string> = {
-  received: "bg-slate-500/10 text-slate-300 border-slate-400/30",
-  diagnosis: "bg-warning/10 text-warning border-warning/30",
-  in_repair: "bg-blue-500/10 text-blue-300 border-blue-400/30",
-  waiting_parts: "bg-orange-500/10 text-orange-300 border-orange-400/30",
+  submitted: "bg-purple-500/10 text-purple-300 border-purple-400/30",
+  pending: "bg-warning/10 text-warning border-warning/30",
+  in_process: "bg-blue-500/10 text-blue-300 border-blue-400/30",
   ready: "bg-emerald-500/10 text-emerald-300 border-emerald-400/30",
   delivered: "bg-success/10 text-success border-success/30",
   cancelled: "bg-danger/10 text-danger border-danger/30"

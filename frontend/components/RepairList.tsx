@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Banknote, CalendarDays, Eye, Pencil, Search, Trash2 } from "lucide-react";
+import { Banknote, CalendarDays, Eye, Pencil, Trash2 } from "lucide-react";
 import { deleteRepair, listRepairs, me, updateRepair, type RepairFilters } from "@/lib/api";
 import type { Repair, RepairStatus, RepairStatusGroup, UserRole } from "@/types/api";
 import { StatusBadge, statusLabels } from "@/components/StatusBadge";
 
 const statuses = Object.keys(statusLabels) as RepairStatus[];
 const statusGroups: RepairStatusGroup[] = ["active", "in_process", "ready", "delivered", "cancelled"];
-const activeStatuses: RepairStatus[] = ["received", "diagnosis", "in_repair", "waiting_parts", "ready"];
 
 function profitLabel(status: RepairStatus) {
   if (status === "delivered") return "Ganancia";
@@ -90,26 +89,26 @@ export function RepairList({
     }
   }
 
-  const visibleFloating = repairs
-    .filter((repair) => activeStatuses.includes(repair.status))
-    .reduce((total, repair) => total + Number(repair.profit_amount ?? 0), 0);
   const visibleDelivered = repairs
     .filter((repair) => repair.status === "delivered")
     .reduce((total, repair) => total + Number(repair.profit_amount ?? 0), 0);
-  const visibleActive = repairs.filter((repair) => activeStatuses.includes(repair.status)).length;
+  const visibleSubmitted = repairs.filter((repair) => repair.status === "submitted").length;
+  const visiblePending = repairs.filter((repair) => repair.status === "pending").length;
+  const visibleInProcess = repairs.filter((repair) => repair.status === "in_process").length;
   const visibleReady = repairs.filter((repair) => repair.status === "ready").length;
   const visibleDeliveredCount = repairs.filter((repair) => repair.status === "delivered").length;
 
   const summaryCards = canManage
     ? [
-        { label: "Ordenes visibles", value: String(totalRepairs), helper: `${repairs.length} en pantalla` },
-        { label: "Activas", value: String(visibleActive), helper: "Recibido, diagnostico, reparacion, piezas o listo" },
-        { label: "Flotante visible", value: `DOP ${visibleFloating.toFixed(2)}`, helper: "Potencial por entregar" },
-        { label: "Entregado visible", value: `DOP ${visibleDelivered.toFixed(2)}`, helper: "Ganancia realizada" }
+        { label: "Nuevas joyerias", value: String(visibleSubmitted), helper: "Enviadas por joyeria" },
+        { label: "Pendientes", value: String(visiblePending), helper: "Por recibir o aceptar" },
+        { label: "En proceso", value: String(visibleInProcess), helper: "Trabajos activos" },
+        { label: "Listas", value: String(visibleReady), helper: "Para entregar" },
+        { label: "Entregadas", value: String(visibleDeliveredCount), helper: `DOP ${visibleDelivered.toFixed(2)}` }
       ]
     : [
-        { label: "Mis ordenes", value: String(totalRepairs), helper: `${repairs.length} en pantalla` },
-        { label: "En proceso", value: String(visibleActive), helper: "Recibido, diagnostico o reparacion" },
+        { label: "Enviadas", value: String(visibleSubmitted), helper: "Subidas al taller" },
+        { label: "En proceso", value: String(visibleInProcess), helper: "Trabajos activos" },
         { label: "Listas", value: String(visibleReady), helper: "Pendientes de entrega" },
         { label: "Entregadas", value: String(visibleDeliveredCount), helper: "Historial propio" }
       ];
@@ -127,6 +126,10 @@ export function RepairList({
     setFilters((current) => ({ ...current, status: status || undefined, status_group: undefined }));
   }
 
+  function statusOptionsForRepair(repair: Repair) {
+    return repair.status === "submitted" ? statuses : statuses.filter((status) => status !== "submitted");
+  }
+
   return (
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -140,24 +143,21 @@ export function RepairList({
       </section>
 
       <section className="rounded-lg border border-border bg-card p-4">
-        <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="space-y-3">
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-foreground">Buscar orden</span>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <input
-                value={search}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setSearch(value);
-                  setFilters((current) => ({ ...current, search: value.trim() || undefined }));
-                }}
-                placeholder="Cliente, telefono, marca, modelo, cedula, factura o estado"
-                className="field-control w-full pl-9"
-              />
-            </div>
+            <input
+              value={search}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSearch(value);
+                setFilters((current) => ({ ...current, search: value.trim() || undefined }));
+              }}
+              placeholder="Cliente, telefono, marca, modelo, cedula, factura o estado"
+              className="field-control h-11 w-full"
+            />
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 pt-1">
             <button type="button" onClick={() => setStatusFilter("")} className={statusChipClass("")}>
               Todas
             </button>
@@ -220,7 +220,7 @@ export function RepairList({
                     onChange={(event) => changeStatus(repair, event.target.value as RepairStatus)}
                     className="focus-ring mt-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground disabled:opacity-60 lg:mt-2 lg:w-full"
                   >
-                    {statuses.map((status) => (
+                    {statusOptionsForRepair(repair).map((status) => (
                       <option key={status} value={status}>
                         {statusLabels[status]}
                       </option>

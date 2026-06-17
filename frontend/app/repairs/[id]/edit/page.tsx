@@ -7,7 +7,7 @@ export default async function EditRepairPage({ params }: { params: Promise<{ id:
   const { id } = await params;
 
   return (
-    <AppShell title="Editar reparacion" subtitle="Solo disponible mientras el trabajo esta en diagnostico">
+    <AppShell title="Editar reparacion" subtitle="Solo disponible para usuarios autorizados">
       <RepairEditLoader id={Number(id)} />
     </AppShell>
   );

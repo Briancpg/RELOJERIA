@@ -8,6 +8,7 @@ import type { ExtractedRepairFields, Repair, RepairPayload, RepairStatus, UserRo
 import { statusLabels } from "@/components/StatusBadge";
 
 const statuses = Object.keys(statusLabels) as RepairStatus[];
+const manualStatuses = statuses.filter((status) => status !== "submitted");
 const MAX_WATCH_PHOTOS = 3;
 const AUTO_FILL_CONFIDENCE = 0.8;
 const SUGGESTION_CONFIDENCE = 0.5;
@@ -64,7 +65,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
     internal_cost: repair?.internal_cost ?? "0",
     deposit_amount: repair?.deposit_amount ?? "",
     watchmaker_percentage: repair?.watchmaker_percentage ?? "0",
-    status: repair?.status ?? "received",
+    status: repair?.status ?? "pending",
     customer_name: repair?.customer_name ?? "",
     customer_phone: repair?.customer_phone ?? "",
     customer_document_id: repair?.customer_document_id ?? "",
@@ -93,7 +94,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
       internal_cost: "0",
       deposit_amount: "",
       watchmaker_percentage: "0",
-      status: "received",
+      status: "pending",
       customer_name: "",
       customer_phone: "",
       customer_document_id: "",
@@ -114,6 +115,10 @@ export function RepairForm({ repair }: { repair?: Repair }) {
 
   function setField<K extends keyof RepairPayload>(key: K, value: RepairPayload[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function statusOptionsForForm() {
+    return repair?.status === "submitted" ? statuses : manualStatuses;
   }
 
   function removeWatchPhoto(index: number) {
@@ -526,7 +531,7 @@ export function RepairForm({ repair }: { repair?: Repair }) {
               onChange={(event) => setField("status", event.target.value as RepairStatus)}
               className="field-control w-full"
             >
-              {statuses.map((status) => (
+              {statusOptionsForForm().map((status) => (
                 <option key={status} value={status}>
                   {statusLabels[status]}
                 </option>

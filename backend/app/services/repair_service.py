@@ -13,18 +13,12 @@ from app.schemas.repair import RepairCreate, RepairUpdate
 CENTS = Decimal("0.01")
 REPAIR_STATUS_GROUPS: dict[str, tuple[RepairStatus, ...]] = {
     "active": (
-        RepairStatus.received,
-        RepairStatus.diagnosis,
-        RepairStatus.in_repair,
-        RepairStatus.waiting_parts,
+        RepairStatus.submitted,
+        RepairStatus.pending,
+        RepairStatus.in_process,
         RepairStatus.ready,
     ),
-    "in_process": (
-        RepairStatus.received,
-        RepairStatus.diagnosis,
-        RepairStatus.in_repair,
-        RepairStatus.waiting_parts,
-    ),
+    "in_process": (RepairStatus.in_process,),
     "ready": (RepairStatus.ready,),
     "delivered": (RepairStatus.delivered,),
     "cancelled": (RepairStatus.cancelled,),
@@ -105,18 +99,22 @@ class RepairService:
                 update={
                     "internal_cost": Decimal("0"),
                     "watchmaker_percentage": Decimal("0"),
-                    "status": RepairStatus.received,
+                    "status": RepairStatus.submitted,
                     "exit_date": None,
                     "notes": None,
                     "envelope_raw_transcription": None,
                 }
             )
+        else:
+            data = data.model_copy(update={"status": RepairStatus.pending, "exit_date": None})
         profit = calculate_profit(data.repair_cost, data.watchmaker_percentage)
         return self.repairs.create(data, profit, created_by_user_id=self.current_user.id)
 
     def update(self, repair_id: int, data: RepairUpdate) -> Repair:
         self.ensure_admin_or_master()
         repair = self.get_or_raise(repair_id)
+        if data.status == RepairStatus.submitted and repair.status != RepairStatus.submitted:
+            raise AppError("Submitted status is reserved for jewelry-created repairs")
         if data.status == RepairStatus.delivered and repair.exit_date is None and data.exit_date is None:
             data = data.model_copy(update={"exit_date": datetime.now().date()})
         repair_cost = data.repair_cost if data.repair_cost is not None else repair.repair_cost

@@ -17,6 +17,8 @@ class DashboardSummary(BaseModel):
     delivered_repairs: int
     accumulated_profit: Decimal
     active_repairs: int
+    submitted_repairs: int
+    in_process_repairs: int
     ready_repairs: int
     delivered_weekly: int
 

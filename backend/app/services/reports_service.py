@@ -10,10 +10,9 @@ from app.services.inventory_service import InventoryService
 
 
 STATUS_SORT_ORDER = (
-    RepairStatus.received,
-    RepairStatus.diagnosis,
-    RepairStatus.in_repair,
-    RepairStatus.waiting_parts,
+    RepairStatus.submitted,
+    RepairStatus.pending,
+    RepairStatus.in_process,
     RepairStatus.ready,
     RepairStatus.delivered,
     RepairStatus.cancelled,
@@ -39,10 +38,9 @@ class ReportsService:
 
     def summary(self) -> ReportsSummary:
         active_statuses = (
-            RepairStatus.received,
-            RepairStatus.diagnosis,
-            RepairStatus.in_repair,
-            RepairStatus.waiting_parts,
+            RepairStatus.submitted,
+            RepairStatus.pending,
+            RepairStatus.in_process,
             RepairStatus.ready,
         )
         total_repairs = self.db.scalar(select(func.count()).select_from(Repair).where(Repair.deleted_at.is_(None))) or 0
@@ -85,10 +83,9 @@ class ReportsService:
             total_repairs=int(total_repairs),
             total_estimated_revenue=self._sum_repair_cost(
                 (
-                    RepairStatus.received,
-                    RepairStatus.diagnosis,
-                    RepairStatus.in_repair,
-                    RepairStatus.waiting_parts,
+                    RepairStatus.submitted,
+                    RepairStatus.pending,
+                    RepairStatus.in_process,
                     RepairStatus.ready,
                     RepairStatus.delivered,
                 )

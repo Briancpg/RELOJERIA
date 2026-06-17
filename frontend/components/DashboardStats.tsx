@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Banknote, CheckCircle2, Clock3, PackageCheck, TrendingUp, WalletCards } from "lucide-react";
+import { CheckCircle2, Clock3, PackageCheck, WalletCards } from "lucide-react";
 import { getDashboardSummary, getMyDashboardSummary, getProfitByWeek, getRepairsByStatus, listRepairs, me } from "@/lib/api";
 import type { DashboardSummary, JewelryDashboardSummary, RepairStatus, StatusCount, UserRole, WeeklyProfit } from "@/types/api";
 import { statusLabels } from "@/components/StatusBadge";
@@ -49,10 +49,10 @@ export function DashboardStats() {
   if (role === "joyeria") {
     if (!mySummary) return <p className="text-sm text-muted">Cargando dashboard...</p>;
     const jewelryCards = [
-      { label: "Mis ordenes", value: String(mySummary.sent_repairs), icon: WalletCards, href: "/repairs" },
-      { label: "En proceso", value: String(mySummary.in_process_repairs), icon: Clock3, href: "/repairs?status_group=in_process" },
-      { label: "Listas", value: String(mySummary.ready_repairs), icon: PackageCheck, href: "/repairs?status_group=ready" },
-      { label: "Entregadas", value: String(mySummary.delivered_repairs), icon: CheckCircle2, href: "/repairs?status_group=delivered" }
+      { label: "Enviadas", value: String(mySummary.sent_repairs), icon: WalletCards, href: "/repairs?status=submitted" },
+      { label: "En proceso", value: String(mySummary.in_process_repairs), icon: Clock3, href: "/repairs?status=in_process" },
+      { label: "Listas", value: String(mySummary.ready_repairs), icon: PackageCheck, href: "/repairs?status=ready" },
+      { label: "Entregadas", value: String(mySummary.delivered_repairs), icon: CheckCircle2, href: "/repairs?status=delivered" }
     ];
     return (
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -80,12 +80,11 @@ export function DashboardStats() {
   if (!summary) return <p className="text-sm text-muted">Cargando dashboard...</p>;
 
   const cards = [
-    { label: "Activas", value: String(summary.active_repairs), icon: Clock3, href: "/repairs?status_group=active" },
-    { label: "Listas para entregar", value: String(summary.ready_repairs), icon: PackageCheck, href: "/repairs?status_group=ready" },
-    { label: "Entregadas esta semana", value: String(summary.delivered_weekly), icon: CheckCircle2, href: "/repairs?status_group=delivered" },
-    { label: "Ganancia semanal", value: money(summary.total_weekly, summary.currency), icon: TrendingUp, href: "/repairs?status_group=delivered" },
-    { label: "Flotante por entregar", value: money(summary.floating_profit, summary.currency), icon: WalletCards, href: "/repairs?status_group=active" },
-    { label: "Ganancia mensual", value: money(summary.total_monthly, summary.currency), icon: Banknote, href: "/repairs?status_group=delivered" }
+    { label: "Nuevas joyerias", value: String(summary.submitted_repairs), icon: WalletCards, href: "/repairs?status=submitted" },
+    { label: "Pendientes", value: String(summary.pending_repairs), icon: Clock3, href: "/repairs?status=pending" },
+    { label: "En proceso", value: String(summary.in_process_repairs), icon: Clock3, href: "/repairs?status=in_process" },
+    { label: "Listas", value: String(summary.ready_repairs), icon: PackageCheck, href: "/repairs?status=ready" },
+    { label: "Entregadas", value: String(summary.delivered_repairs), icon: CheckCircle2, href: "/repairs?status=delivered" }
   ];
 
   async function openStatus(item: StatusCount) {

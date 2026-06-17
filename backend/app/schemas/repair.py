@@ -19,7 +19,7 @@ class RepairBase(BaseModel):
     internal_cost: Decimal = Field(default=Decimal("0"), ge=Decimal("0"))
     deposit_amount: Decimal | None = Field(default=None, ge=Decimal("0"))
     watchmaker_percentage: Decimal = Field(default=Decimal("0"), ge=Decimal("0"), le=Decimal("100"))
-    status: RepairStatus = RepairStatus.received
+    status: RepairStatus = RepairStatus.pending
     customer_name: str = Field(min_length=1, max_length=160)
     customer_phone: str = Field(min_length=1, max_length=40)
     customer_document_id: str | None = Field(default=None, max_length=40)

@@ -39,10 +39,9 @@ class ClientsService:
             (
                 Repair.status.in_(
                     (
-                        RepairStatus.received,
-                        RepairStatus.diagnosis,
-                        RepairStatus.in_repair,
-                        RepairStatus.waiting_parts,
+                        RepairStatus.submitted,
+                        RepairStatus.pending,
+                        RepairStatus.in_process,
                         RepairStatus.ready,
                     )
                 ),

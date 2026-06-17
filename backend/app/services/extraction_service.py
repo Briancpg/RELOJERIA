@@ -132,10 +132,9 @@ EXTRACTION_SCHEMA: dict[str, Any] = {
                 "value": {
                     "type": "string",
                     "enum": [
-                        "received",
-                        "diagnosis",
-                        "in_repair",
-                        "waiting_parts",
+                        "submitted",
+                        "pending",
+                        "in_process",
                         "ready",
                         "delivered",
                         "cancelled",
@@ -300,8 +299,8 @@ class ExtractionService:
                                 "- Phone numbers must be extracted separately.\n"
                                 "- Watch brand and model must not be invented.\n"
                                 "- Repair description and notes must remain in Spanish.\n"
-                                "- Use status.value='received' unless another status is clearly written.\n"
-                                "- Map visible workflow states as: recibido=received, diagnostico=diagnosis, reparacion=in_repair, espera piezas=waiting_parts, listo=ready, listo para entregar=ready, entregado=delivered, cancelado=cancelled.\n\n"
+                                "- Use status.value='pending' unless another status is clearly written.\n"
+                                "- Map visible workflow states as: enviado por joyeria=submitted, recibido=pending, pendiente=pending, diagnostico=pending, reparacion=in_process, en proceso=in_process, espera piezas=in_process, listo=ready, listo para entregar=ready, entregado=delivered, cancelado=cancelled.\n\n"
                                 f"Raw transcription in Spanish:\n{raw_transcription}\n\n"
                                 f"Raw text candidates:\n{json.dumps(candidates, ensure_ascii=False)}\n\n"
                                 f"Transcription warnings:\n{json.dumps(warnings, ensure_ascii=False)}"

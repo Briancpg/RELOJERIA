@@ -11,23 +11,20 @@ from app.schemas.dashboard import DashboardSummary, JewelryDashboardSummary, Sta
 
 REALIZED_PROFIT_STATUSES = (RepairStatus.delivered,)
 ACTIVE_REPAIR_STATUSES = (
-    RepairStatus.received,
-    RepairStatus.diagnosis,
-    RepairStatus.in_repair,
-    RepairStatus.waiting_parts,
+    RepairStatus.submitted,
+    RepairStatus.pending,
+    RepairStatus.in_process,
+    RepairStatus.ready,
 )
 FLOATING_PROFIT_STATUSES = (
-    RepairStatus.received,
-    RepairStatus.diagnosis,
-    RepairStatus.in_repair,
-    RepairStatus.waiting_parts,
+    RepairStatus.pending,
+    RepairStatus.in_process,
     RepairStatus.ready,
 )
 STATUS_SORT_ORDER = (
-    RepairStatus.received,
-    RepairStatus.diagnosis,
-    RepairStatus.in_repair,
-    RepairStatus.waiting_parts,
+    RepairStatus.submitted,
+    RepairStatus.pending,
+    RepairStatus.in_process,
     RepairStatus.ready,
     RepairStatus.delivered,
     RepairStatus.cancelled,
@@ -112,18 +109,20 @@ class DashboardService:
             floating_weekly=self._profit_between(week_start, week_end, FLOATING_PROFIT_STATUSES),
             floating_monthly=self._profit_between(month_start, today, FLOATING_PROFIT_STATUSES),
             floating_profit=self._profit_between(statuses=FLOATING_PROFIT_STATUSES),
-            pending_repairs=self._count_statuses((RepairStatus.received, RepairStatus.diagnosis)),
+            pending_repairs=self._count_status(RepairStatus.pending),
             delivered_repairs=self._count_status(RepairStatus.delivered),
             accumulated_profit=self._profit_between(),
             active_repairs=self._count_statuses(ACTIVE_REPAIR_STATUSES),
+            submitted_repairs=self._count_status(RepairStatus.submitted),
+            in_process_repairs=self._count_status(RepairStatus.in_process),
             ready_repairs=self._count_status(RepairStatus.ready),
             delivered_weekly=self._count_delivered_between(week_start, week_end),
         )
 
     def jewelry_summary(self, user_id: int) -> JewelryDashboardSummary:
         return JewelryDashboardSummary(
-            sent_repairs=self._count_statuses(tuple(RepairStatus), owner_user_id=user_id),
-            in_process_repairs=self._count_statuses(ACTIVE_REPAIR_STATUSES, owner_user_id=user_id),
+            sent_repairs=self._count_statuses((RepairStatus.submitted,), owner_user_id=user_id),
+            in_process_repairs=self._count_statuses((RepairStatus.in_process,), owner_user_id=user_id),
             ready_repairs=self._count_statuses((RepairStatus.ready,), owner_user_id=user_id),
             delivered_repairs=self._count_statuses((RepairStatus.delivered,), owner_user_id=user_id),
         )

@@ -1,8 +1,7 @@
 export type RepairStatus =
-  | "received"
-  | "diagnosis"
-  | "in_repair"
-  | "waiting_parts"
+  | "submitted"
+  | "pending"
+  | "in_process"
   | "ready"
   | "delivered"
   | "cancelled";
@@ -106,6 +105,8 @@ export type DashboardSummary = {
   delivered_repairs: number;
   accumulated_profit: string;
   active_repairs: number;
+  submitted_repairs: number;
+  in_process_repairs: number;
   ready_repairs: number;
   delivered_weekly: number;
 };

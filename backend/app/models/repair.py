@@ -9,10 +9,9 @@ from app.db.base import Base, SoftDeleteMixin, TimestampMixin
 
 
 class RepairStatus(StrEnum):
-    received = "received"
-    diagnosis = "diagnosis"
-    in_repair = "in_repair"
-    waiting_parts = "waiting_parts"
+    submitted = "submitted"
+    pending = "pending"
+    in_process = "in_process"
     ready = "ready"
     delivered = "delivered"
     cancelled = "cancelled"
@@ -27,7 +26,7 @@ class Repair(Base, TimestampMixin, SoftDeleteMixin):
         CheckConstraint("watchmaker_percentage >= 0 AND watchmaker_percentage <= 100", name="percentage_range"),
         CheckConstraint("profit_amount >= 0", name="profit_amount_non_negative"),
         CheckConstraint(
-            "status IN ('received', 'diagnosis', 'in_repair', 'waiting_parts', 'ready', 'delivered', 'cancelled')",
+            "status IN ('submitted', 'pending', 'in_process', 'ready', 'delivered', 'cancelled')",
             name="status_allowed",
         ),
         Index("ix_repairs_repair_date_status", "repair_date", "status"),
@@ -52,7 +51,7 @@ class Repair(Base, TimestampMixin, SoftDeleteMixin):
     profit_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     status: Mapped[RepairStatus] = mapped_column(
         Enum(RepairStatus, name="repair_status", native_enum=False),
-        default=RepairStatus.received,
+        default=RepairStatus.pending,
         index=True,
         nullable=False,
     )

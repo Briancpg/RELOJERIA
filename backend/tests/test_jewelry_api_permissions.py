@@ -63,7 +63,7 @@ def _repair(*, created_by_user_id: int, brand: str) -> Repair:
         deposit_amount=Decimal("100.00"),
         watchmaker_percentage=Decimal("50.00"),
         profit_amount=Decimal("600.00"),
-        status=RepairStatus.received,
+        status=RepairStatus.submitted,
         customer_name="Cliente prueba",
         customer_phone="809-555-0000",
         customer_document_id="001-0000000-1",
@@ -240,7 +240,7 @@ def test_jewelry_create_repair_forces_safe_defaults_and_redacts_sensitive_respon
     assert response.status_code == 201
     body = response.json()
     assert body["created_by_user_id"] == api_context.jewelry_id
-    assert body["status"] == "received"
+    assert body["status"] == "submitted"
     assert body["exit_date"] is None
     assert_repair_sensitive_fields_are_redacted(body)
 
@@ -437,6 +437,27 @@ def test_jewelry_cannot_access_any_inventory_endpoint(api_context: ApiContext):
         response = api_context.client.request(method, path, json=payload, headers=_jewelry_headers())
         assert response.status_code == 403
         assert_no_sensitive_keys(response.json())
+
+
+def test_admin_dashboard_and_reports_work_with_simplified_statuses(api_context: ApiContext):
+    summary = api_context.client.get("/api/v1/dashboard/summary", headers=_admin_headers())
+    assert summary.status_code == 200
+    summary_body = summary.json()
+    assert summary_body["submitted_repairs"] == 2
+    assert summary_body["pending_repairs"] == 0
+    assert summary_body["active_repairs"] == 2
+    assert summary_body["ready_repairs"] == 0
+    assert summary_body["delivered_repairs"] == 0
+
+    by_status = api_context.client.get("/api/v1/dashboard/repairs-by-status", headers=_admin_headers())
+    assert by_status.status_code == 200
+    assert by_status.json() == [{"status": "submitted", "count": 2}]
+
+    reports = api_context.client.get("/api/v1/reports/summary", headers=_admin_headers())
+    assert reports.status_code == 200
+    report_body = reports.json()
+    assert report_body["total_repairs"] == 2
+    assert report_body["status_counts"] == [{"name": "submitted", "count": 2}]
 
 
 def test_jewelry_limited_dashboard_has_no_financial_or_sensitive_fields(api_context: ApiContext):
