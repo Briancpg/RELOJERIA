@@ -24,7 +24,14 @@ import type {
   WeeklyProfit
 } from "@/types/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/v1";
+function defaultApiBaseUrl() {
+  if (typeof window !== "undefined" && window.location.hostname.endsWith("tutallerrelojero.com")) {
+    return "https://api.tutallerrelojero.com/api/v1";
+  }
+  return "/api/v1";
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || defaultApiBaseUrl();
 
 type RequestOptions = RequestInit & { auth?: boolean };
 
