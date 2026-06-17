@@ -31,6 +31,16 @@ class AuthService:
             raise AppError("Invalid email or password", status.HTTP_401_UNAUTHORIZED)
         return user
 
+    def change_password(self, user: User, current_password: str, new_password: str) -> None:
+        if not verify_password(current_password, user.hashed_password):
+            raise AppError("Current password is incorrect", status.HTTP_400_BAD_REQUEST)
+        if verify_password(new_password, user.hashed_password):
+            raise AppError("New password must be different", status.HTTP_400_BAD_REQUEST)
+
+        user.hashed_password = hash_password(new_password)
+        self.db.add(user)
+        self.db.commit()
+
     def issue_tokens(self, user: User):
         return {
             "access_token": create_access_token(user.email),
@@ -46,4 +56,3 @@ class AuthService:
         if not user or not user.is_active:
             raise AppError("Invalid refresh token", status.HTTP_401_UNAUTHORIZED)
         return self.issue_tokens(user)
-

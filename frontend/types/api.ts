@@ -15,6 +15,11 @@ export type TokenResponse = {
   token_type: "bearer";
 };
 
+export type ChangePasswordPayload = {
+  current_password: string;
+  new_password: string;
+};
+
 export type User = {
   id: number;
   email: string;

@@ -2,7 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, ClipboardList, LayoutDashboard, LogOut, Menu, Package, Plus, Users, Watch, X } from "lucide-react";
+import {
+  BarChart3,
+  ClipboardList,
+  KeyRound,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Package,
+  Plus,
+  Users,
+  Watch,
+  X
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { clearTokens } from "@/lib/auth";
 import { me } from "@/lib/api";
@@ -14,6 +26,7 @@ const links = [
   { href: "/clientes", label: "Clientes", icon: Users, adminOnly: true },
   { href: "/inventario", label: "Inventario", icon: Package, adminOnly: true },
   { href: "/reportes", label: "Reportes", icon: BarChart3, adminOnly: true },
+  { href: "/cuenta", label: "Mi cuenta", icon: KeyRound },
   { href: "/repairs/new", label: "Nueva orden", icon: Plus }
 ];
 

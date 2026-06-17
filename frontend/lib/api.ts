@@ -3,6 +3,7 @@
 import { clearTokens, getAccessToken, saveTokens } from "@/lib/auth";
 import type {
   ClientListResponse,
+  ChangePasswordPayload,
   DashboardSummary,
   EnvelopeExtractionResponse,
   InventoryItem,
@@ -131,6 +132,13 @@ export async function login(email: string, password: string) {
 
 export function me() {
   return request<User>("/auth/me");
+}
+
+export function changePassword(payload: ChangePasswordPayload) {
+  return request<void>("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
 }
 
 export function getDashboardSummary() {
